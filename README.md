@@ -1,1 +1,1 @@
-# Sistema_gr-fico_Alfeu_Caio
+# Sistema_gráfico_Alfeu_Caio
