@@ -2,13 +2,13 @@ import sys
 from enum import Enum
 from typing import List, Tuple
 
-from PyQt6.QtGui import QColor, QPalette, QPainter, QPen
 from PyQt6.QtWidgets import (
     QMainWindow,
     QApplication,
     QWidget,
     QHBoxLayout,
     QVBoxLayout,
+    QDockWidget,
     QTextEdit,
     QPushButton,
     QLabel,
@@ -17,6 +17,9 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QGridLayout,
 )
+
+from PyQt6.QtCore import QSize, Qt, QPoint
+from PyQt6.QtGui import QColor, QPalette, QPainter, QPen
 
 
 class ObjectType(Enum):
@@ -122,14 +125,7 @@ class Canvas(QWidget):
         self.update()
 
     # Window to Viewport transformation
-    def resizeEvent(self, event):
-        """Update viewport size when the widget is resized."""
-        self.viewport_xmax = self.width()
-        self.viewport_ymax = self.height()
-        self.update()
-
     def transform_coords(self, xw, yw):
-        """Window-to-Viewport transformation."""
         xvp = (self.viewport_xmax - self.viewport_xmin) * (
             (xw - self.window.xmin) / (self.window.xmax - self.window.xmin)
         )
@@ -137,6 +133,11 @@ class Canvas(QWidget):
             1 - ((yw - self.window.ymin) / (self.window.ymax - self.window.ymin))
         )
         return xvp, yvp
+    
+    def resizeEvent(self, event):
+        self.viewport_xmax = self.width()
+        self.viewport_ymax = self.height()
+        self.update()
 
     # Pan the window
     def pan(self, dx, dy):
@@ -366,35 +367,10 @@ class MainWindow(QMainWindow):
         self.sidebar.setFixedWidth(250)
         main_layout.addWidget(self.sidebar)
 
-        # Example: Create some sample wireframes
-        self.add_example_wireframes()
-
         # setting the basic configuration for the window
         self.setWindowTitle("Sistema básico com Window e Viewport")
         self.setMinimumSize(800, 600)
         self.show()
-
-    def add_example_wireframes(self):
-        # Example dot
-        dot = Wireframe("Point1", ObjectType.DOT, [(0, 0)])
-        dot.set_color(QColor("red"))
-        self.canvas.add_object(dot)
-        self.console.log(f"Added dot: {dot.name}")
-
-        # Example line
-        line = Wireframe("Line1", ObjectType.LINE, [(-5, -5), (5, 5)])
-        line.set_color(QColor("blue"))
-        self.canvas.add_object(line)
-        self.console.log(f"Added line: {line.name}")
-
-        # Example polygon - a square
-        polygon = Wireframe(
-            "Square", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)]
-        )
-        polygon.set_color(QColor("green"))
-        self.canvas.add_object(polygon)
-        self.console.log(f"Added polygon: {polygon.name}")
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
