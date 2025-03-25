@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QGroupBox,
     QGridLayout,
+    QHBoxLayout,
 )
 from PyQt6.QtGui import QColor, QPalette
 
@@ -14,6 +15,7 @@ from utils.types import ObjectType
 from models.wireframe import Wireframe
 from ui.canvas import Canvas
 from ui.console import Console
+from ui.color import Color
 
 class SideBar(QWidget):
     def __init__(self, canvas: Canvas, console: Console):
@@ -76,6 +78,22 @@ class SideBar(QWidget):
         creation_layout.addWidget(QLabel("Coordinates (x1,y1),(x2,y2),...:"))
         creation_layout.addWidget(self.coords_input)
 
+        self.selected_color = QColor("black")  # Default color
+        self.color_preview = QWidget()
+        self.color_preview.setFixedSize(20, 20)
+        self.update_color_preview()
+
+        color_layout = QHBoxLayout()
+        color_layout.addWidget(QLabel("Color:"))
+        color_layout.addWidget(self.color_preview)
+
+        # Color selection button
+        self.select_color_btn = QPushButton("Choose Color")
+        self.select_color_btn.clicked.connect(self.choose_color)
+        color_layout.addWidget(self.select_color_btn)
+
+        creation_layout.addLayout(color_layout)
+
         # Add object button
         self.add_obj_btn = QPushButton("Add Object")
         creation_layout.addWidget(self.add_obj_btn)
@@ -98,6 +116,17 @@ class SideBar(QWidget):
         self.clear_btn.clicked.connect(self.clear_canvas)
 
         self.setMinimumSize(200, 300)
+
+    def update_color_preview(self):
+        self.color_preview.setStyleSheet(
+            f"background-color: {self.selected_color.name()}; border: 1px solid #888;"
+        )
+
+    def choose_color(self):
+        color = Color.get_color(self, self.selected_color)
+        if color:
+            self.selected_color = color
+            self.update_color_preview()
 
     def add_object(self):
         name = self.obj_name_input.text()
@@ -132,9 +161,9 @@ class SideBar(QWidget):
                     "Error: A polygon requires at least 3 coordinate pairs."
                 )
                 return
-
-        # Create and add the object
+                
         new_obj = Wireframe(name, obj_type, coords)
+        new_obj.set_color(self.selected_color)  # Apply selected color
         self.canvas.add_object(new_obj)
         self.console.log(f"Added {type_str.lower()}: {name}")
 
