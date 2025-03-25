@@ -1,18 +1,10 @@
 import sys
+from PyQt6.QtWidgets import QMainWindow, QApplication, QWidget, QHBoxLayout, QVBoxLayout
+# from PyQt6.QtCore import QSize
 
-from PyQt6.QtWidgets import (
-    QMainWindow,
-    QApplication,
-    QWidget,
-    QHBoxLayout,
-    QVBoxLayout,
-    QTextEdit,
-    QLabel,
-)
-
-from canvas import Canvas
-from sidebar import Sidebar
-
+from ui.canvas import Canvas
+from ui.console import Console
+from ui.sidebar import SideBar
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -32,29 +24,26 @@ class MainWindow(QMainWindow):
         content_layout = QVBoxLayout()
         main_layout.addLayout(content_layout)
 
-        # Sidebar
-        self.sidebar = Sidebar()
+        # Canvas (Viewport)
+        self.canvas = Canvas()
+        content_layout.addWidget(self.canvas)
+
+        # Terminal
+        self.console = Console()
+        content_layout.addWidget(self.console)
+        self.console.log("2D Graphics System initialized")
+
+        # Sidebar with access to canvas and console
+        self.sidebar = SideBar(self.canvas, self.console)
         self.sidebar.setFixedWidth(250)
         main_layout.addWidget(self.sidebar)
 
-        # Viewport
-        self.viewport = Canvas()
-        content_layout.addWidget(QLabel("Viewport"))
-        content_layout.addWidget(self.viewport)
-
-        # Terminal
-        self.terminal = QTextEdit()
-        self.terminal.setReadOnly(True)
-        self.terminal.setMaximumHeight(200)
-        content_layout.addWidget(QLabel("Terminal"))
-        content_layout.addWidget(self.terminal)
-
         # setting the basic configuration for the window
         self.setWindowTitle("Sistema básico com Window e Viewport")
-        self.setMinimumSize(800, 500)
+        self.setMinimumSize(800, 600)
         self.show()
 
-
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
