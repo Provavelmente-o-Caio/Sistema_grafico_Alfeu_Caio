@@ -9,9 +9,9 @@ from ui.sidebar import SideBar
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         # Central Widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(800, 600)
         self.show()
 
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
