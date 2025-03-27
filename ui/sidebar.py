@@ -15,6 +15,7 @@ from models.wireframe import Wireframe
 from ui.canvas import Canvas
 from ui.console import Console
 
+
 class SideBar(QWidget):
     def __init__(self, canvas: Canvas, console: Console):
         super().__init__()
@@ -108,7 +109,7 @@ class SideBar(QWidget):
         # Parse coordinates
         try:
             coords_str = self.coords_input.text()
-            coords = list(eval(coords_str))
+            coords = eval(coords_str)
         except Exception as e:
             self.console.log(f"Error parsing coordinates: {e}")
             return
@@ -117,9 +118,10 @@ class SideBar(QWidget):
         type_str = self.obj_type_combo.currentText()
         if type_str == "Dot":
             obj_type = ObjectType.DOT
-            if len(coords) != 1:
+            if all(isinstance(point, float) for point in coords) and len(coords) != 2:
                 self.console.log("Error: A dot requires exactly 1 coordinate pair.")
                 return
+            coords = [coords]
         elif type_str == "Line":
             obj_type = ObjectType.LINE
             if len(coords) != 2:
