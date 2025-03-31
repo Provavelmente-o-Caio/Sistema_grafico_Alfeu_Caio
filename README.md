@@ -14,7 +14,7 @@ Este sistema implementa conceitos fundamentais de computação gráfica 2D, incl
 
 ### Pontos
 Para criar um ponto, insira uma única coordenada:
-- [(0, 0)]
+- (0, 0)
 
 ### Linhas
 Para criar uma linha, insira duas coordenadas:
