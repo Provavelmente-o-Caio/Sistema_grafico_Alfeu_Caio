@@ -168,6 +168,18 @@ class SideBar(QWidget):
         rotate_layout.addWidget(self.rotate_btn)
         rotate_group.setLayout(rotate_layout)
         layout.addWidget(rotate_group)
+        
+        # Controls for Rotation (with center)
+        rotate_group = QGroupBox("Rotação com Centro")
+        rotate_layout = QHBoxLayout()
+        self.angle_input = QLineEdit()
+        self.angle_input.setPlaceholderText("Ângulo (graus)")
+        self.rotate_btn = QPushButton("Rotacionar pelo Centro")
+        self.rotate_btn.clicked.connect(self.apply_rotationInCenter)
+        rotate_layout.addWidget(self.angle_input)
+        rotate_layout.addWidget(self.rotate_btn)
+        rotate_group.setLayout(rotate_layout)
+        layout.addWidget(rotate_group)
 
         # Connect signals to slots
         self.pan_up_btn.clicked.connect(lambda: self.canvas.pan(0, 1))
@@ -229,15 +241,18 @@ class SideBar(QWidget):
 
         new_obj = Wireframe(name, obj_type, coords)
         new_obj.set_color(self.selected_color)  # Apply selected color
-        self.canvas.add_object(new_obj)
-        self.console.log(f"Added {type_str.lower()}: {name}")
+        try:
+            self.canvas.add_object(new_obj)
+            self.console.log(f"Added {type_str.lower()}: {name}")
+            self.obj_list.addItem(QListWidgetItem(name))
+        except ValueError as e:
+            self.console.log(f"Error adding object, object {name} already exists")
 
         # Clear inputs
         self.obj_name_input.clear()
         self.coords_input.clear()
 
         # Update object list
-        self.obj_list.addItem(QListWidgetItem(name))
 
     def update_object_list(self):
         self.obj_list.clear()
@@ -284,6 +299,23 @@ class SideBar(QWidget):
             return
         self.canvas.rotate_objects(angle)
         self.console.log(f"Rotacionou os objetos em {angle} graus.")
+        
+    def apply_rotationInCenter(self):
+        try:
+            angle = float(self.angle_input.text())
+        except ValueError:
+            self.console.log("Error: Ângulo inválido para rotação.")
+            return
+            
+        selected_items = self.obj_list.selectedItems()    
+        for item in selected_items:
+            name = item.text()
+            for obj in self.canvas.objects:
+                if obj.name == name:
+                    self.canvas.rotateWithCenter(obj, angle)
+                    break
+                    
+        self.console.log(f"Rotacionou {len(selected_items)} objeto(s) em {angle} graus pelo centro.")
 
     def clear_canvas(self):
         self.canvas.clear()

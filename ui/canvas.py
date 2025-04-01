@@ -36,6 +36,9 @@ class Canvas(QWidget):
         self.load_example_objects()
 
     def add_object(self, wireframe: Wireframe):
+        if any(wireframe.name == obj.name for obj in self.objects):
+            raise ValueError
+        
         self.objects.append(wireframe)
         self.update()  # Redraw canvas
         
@@ -51,12 +54,12 @@ class Canvas(QWidget):
         self.add_object(line)
 
         # Exemplo: Polígono (Polygon)
-        triangle = Wireframe("Polygon Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)])
+        triangle = Wireframe("Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)])
         triangle.set_color(QColor("blue"))
         self.add_object(triangle)
         
         # Exemplo: Polígono (Polygon)
-        square = Wireframe("Polygon Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)])
+        square = Wireframe("Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)])
         square.set_color(QColor("blue"))
         self.add_object(square)
 
@@ -99,14 +102,19 @@ class Canvas(QWidget):
         )
         return xvp, yvp
     
-    def rotateWithCenter(self, objects, angle: float):
-        if not object.is_selected:
-            for obj in self.objects:
-                obj.rotate(angle)
-            self.update()
+    # This method is responsible for rotating a single object
+    def rotateWithCenter(self, object: Wireframe, angle: float):
+        cx = object.getCenterObjectX()
+        cy = object.getCenterObjectY()
         
-        # TODO: faz caio
-    
+        self.translate_objects(-cx, -cy)
+        object.rotate(angle)
+        
+        self.translate_objects(cx, cy)
+        
+        self.update()
+        
+            
     def resizeEvent(self, event):
         self.viewport_xmax = self.width()
         self.viewport_ymax = self.height()
