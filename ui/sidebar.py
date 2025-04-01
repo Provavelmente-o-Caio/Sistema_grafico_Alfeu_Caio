@@ -128,13 +128,13 @@ class SideBar(QWidget):
         layout.addWidget(self.obj_list_group)
 
         # Controls for 2D translation
-        trans_group = QGroupBox("Translação")
+        trans_group = QGroupBox("Translation")
         trans_layout = QHBoxLayout()
         self.dx_input = QLineEdit()
         self.dx_input.setPlaceholderText("dx")
         self.dy_input = QLineEdit()
         self.dy_input.setPlaceholderText("dy")
-        self.translate_btn = QPushButton("Aplicar Translação")
+        self.translate_btn = QPushButton("Apply Translation")
         self.translate_btn.clicked.connect(self.apply_translation)
         trans_layout.addWidget(self.dx_input)
         trans_layout.addWidget(self.dy_input)
@@ -142,14 +142,14 @@ class SideBar(QWidget):
         trans_group.setLayout(trans_layout)
         layout.addWidget(trans_group)
 
-        # Controles para Transformação 2D
-        trans_group = QGroupBox("Transformação")
+        # Controls for 2D transformation
+        trans_group = QGroupBox("Transformation")
         trans_layout = QHBoxLayout()
         self.dx_transform_input = QLineEdit()
         self.dx_transform_input.setPlaceholderText("dx")
         self.dy_transform_input = QLineEdit()
         self.dy_transform_input.setPlaceholderText("dy")
-        self.transform_btn = QPushButton("Aplicar Transformação")
+        self.transform_btn = QPushButton("Apply Transformation")
         self.transform_btn.clicked.connect(self.apply_transformation)
         trans_layout.addWidget(self.dx_transform_input)
         trans_layout.addWidget(self.dy_transform_input)
@@ -158,11 +158,11 @@ class SideBar(QWidget):
         layout.addWidget(trans_group)
 
         # Controls for Rotation
-        rotate_group = QGroupBox("Rotação")
+        rotate_group = QGroupBox("Rotation")
         rotate_layout = QHBoxLayout()
         self.angle_input = QLineEdit()
         self.angle_input.setPlaceholderText("Angle")
-        self.rotate_btn = QPushButton("Aplicar Rotação")
+        self.rotate_btn = QPushButton("Apply Rotation")
         self.rotate_btn.clicked.connect(self.apply_rotation)
         rotate_layout.addWidget(self.angle_input)
         rotate_layout.addWidget(self.rotate_btn)
@@ -170,11 +170,11 @@ class SideBar(QWidget):
         layout.addWidget(rotate_group)
         
         # Controls for Rotation (with center)
-        rotate_group = QGroupBox("Rotação com Centro")
+        rotate_group = QGroupBox("Rotation Around Center")
         rotate_layout = QHBoxLayout()
         self.angle_input = QLineEdit()
-        self.angle_input.setPlaceholderText("Ângulo (graus)")
-        self.rotate_btn = QPushButton("Rotacionar pelo Centro")
+        self.angle_input.setPlaceholderText("Angle (degrees)")
+        self.rotate_btn = QPushButton("Rotate Around Center")
         self.rotate_btn.clicked.connect(self.apply_rotationInCenter)
         rotate_layout.addWidget(self.angle_input)
         rotate_layout.addWidget(self.rotate_btn)
@@ -190,6 +190,34 @@ class SideBar(QWidget):
         self.zoom_out_btn.clicked.connect(self.canvas.zoom_out)
         self.add_obj_btn.clicked.connect(self.add_object)
         self.clear_btn.clicked.connect(self.clear_canvas)
+        
+        # Controls for Rotation around arbitrary point
+        rotate_point_group = QGroupBox("Rotation Around Point")
+        rotate_point_layout = QVBoxLayout()
+
+        angle_row = QHBoxLayout()
+        angle_row.addWidget(QLabel("Angle:"))
+        self.point_angle_input = QLineEdit()
+        self.point_angle_input.setPlaceholderText("Degrees")
+        angle_row.addWidget(self.point_angle_input)
+        rotate_point_layout.addLayout(angle_row)
+
+        point_row = QHBoxLayout()
+        point_row.addWidget(QLabel("Center:"))
+        self.point_x_input = QLineEdit()
+        self.point_x_input.setPlaceholderText("X")
+        self.point_y_input = QLineEdit()
+        self.point_y_input.setPlaceholderText("Y")
+        point_row.addWidget(self.point_x_input)
+        point_row.addWidget(self.point_y_input)
+        rotate_point_layout.addLayout(point_row)
+
+        self.rotate_point_btn = QPushButton("Rotate Around Point")
+        self.rotate_point_btn.clicked.connect(self.apply_rotationInArbitraryPoint)
+        rotate_point_layout.addWidget(self.rotate_point_btn)
+
+        rotate_point_group.setLayout(rotate_point_layout)
+        layout.addWidget(rotate_point_group)
 
         self.setMinimumSize(200, 300)
 
@@ -210,7 +238,6 @@ class SideBar(QWidget):
             self.console.log("Error: Object name is required.")
             return
 
-        # Parse coordinates
         try:
             coords_str = self.coords_input.text()
             coords = eval(coords_str)
@@ -218,7 +245,6 @@ class SideBar(QWidget):
             self.console.log(f"Error parsing coordinates: {e}")
             return
 
-        # Get object type
         type_str = self.obj_type_combo.currentText()
         if type_str == "Dot":
             obj_type = ObjectType.DOT
@@ -252,8 +278,7 @@ class SideBar(QWidget):
         self.obj_name_input.clear()
         self.coords_input.clear()
 
-        # Update object list
-
+    # Update object list
     def update_object_list(self):
         self.obj_list.clear()
         for obj in self.canvas.objects:
@@ -276,20 +301,20 @@ class SideBar(QWidget):
             dx = float(self.dx_input.text())
             dy = float(self.dy_input.text())
         except ValueError:
-            self.console.log("Error: Valores inválidos para translação.")
+            self.console.log("Error: Invalid values for translation.")
             return
         self.canvas.translate_objects(dx, dy)
-        self.console.log(f"Transladou os objetos por ({dx}, {dy}).")
+        self.console.log(f"Translated objects by ({dx}, {dy}).")
 
     def apply_transformation(self):
         try:
             dx = float(self.dx_transform_input.text())
             dy = float(self.dy_transform_input.text())
         except ValueError:
-            self.console.log("Error: Valores inválidos para transformação.")
+            self.console.log("Error: Invalid values for transformation.")
             return
         self.canvas.transform_objects(dx, dy)
-        self.console.log(f"Transformou os objetos por ({dx}, {dy}).")
+        self.console.log(f"Transformed objects by ({dx}, {dy}).")
 
     def apply_rotation(self):
         try:
@@ -298,13 +323,13 @@ class SideBar(QWidget):
             self.console.log("Error: Invalid angle for rotation.")
             return
         self.canvas.rotate_objects(angle)
-        self.console.log(f"Rotacionou os objetos em {angle} graus.")
+        self.console.log(f"Rotated objects by {angle} degrees.")
         
     def apply_rotationInCenter(self):
         try:
             angle = float(self.angle_input.text())
         except ValueError:
-            self.console.log("Error: Ângulo inválido para rotação.")
+            self.console.log("Error: Invalid angle for rotation.")
             return
             
         selected_items = self.obj_list.selectedItems()    
@@ -315,7 +340,30 @@ class SideBar(QWidget):
                     self.canvas.rotateWithCenter(obj, angle)
                     break
                     
-        self.console.log(f"Rotacionou {len(selected_items)} objeto(s) em {angle} graus pelo centro.")
+        self.console.log(f"Rotated {len(selected_items)} object(s) by {angle} degrees around center.")
+        
+    def apply_rotationInArbitraryPoint(self):
+        try:
+            angle = float(self.point_angle_input.text())
+            px = float(self.point_x_input.text())
+            py = float(self.point_y_input.text())
+        except ValueError:
+            self.console.log("Error: Invalid values for rotation around point.")
+            return
+            
+        selected_items = self.obj_list.selectedItems()
+        if not selected_items:
+            self.console.log("Error: No object selected.")
+            return
+                
+        for item in selected_items:
+            name = item.text()
+            for obj in self.canvas.objects:
+                if obj.name == name:
+                    self.canvas.rotateInPoint(obj, angle, px, py)
+                    break
+                    
+        self.console.log(f"Rotated {len(selected_items)} object(s) by {angle} degrees around point ({px}, {py}).")
 
     def clear_canvas(self):
         self.canvas.clear()

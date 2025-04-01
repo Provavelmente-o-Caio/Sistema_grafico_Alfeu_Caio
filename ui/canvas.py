@@ -33,32 +33,31 @@ class Canvas(QWidget):
         self.step = 1.0  # Step size for panning
         self.zoom_factor = 1.2  # Zoom factor
         
+        # Loads the example objects for better utilization of the software
         self.load_example_objects()
 
+    # Adds a new object in the canvas
     def add_object(self, wireframe: Wireframe):
         if any(wireframe.name == obj.name for obj in self.objects):
             raise ValueError
         
         self.objects.append(wireframe)
-        self.update()  # Redraw canvas
+        self.update()  
         
+    # Loads the preset objects
     def load_example_objects(self):
-        # Exemplo: Ponto (Dot)
         dot = Wireframe("Dot Example", ObjectType.DOT, [(0, 0)])
         dot.set_color(QColor("red"))
         self.add_object(dot)
 
-        # Exemplo: Linha (Line)
         line = Wireframe("Line Example", ObjectType.LINE, [(-5, -5), (5, 5)])
         line.set_color(QColor("green"))
         self.add_object(line)
 
-        # Exemplo: Polígono (Polygon)
         triangle = Wireframe("Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)])
         triangle.set_color(QColor("blue"))
         self.add_object(triangle)
         
-        # Exemplo: Polígono (Polygon)
         square = Wireframe("Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)])
         square.set_color(QColor("blue"))
         self.add_object(square)
@@ -92,16 +91,6 @@ class Canvas(QWidget):
             obj.rotate(angle)
         self.update()
 
-    # Window to Viewport transformation
-    def transform_coords(self, xw, yw):
-        xvp = (self.viewport_xmax - self.viewport_xmin) * (
-            (xw - self.window.xmin) / (self.window.xmax - self.window.xmin)
-        )
-        yvp = (self.viewport_ymax - self.viewport_ymin) * (
-            1 - ((yw - self.window.ymin) / (self.window.ymax - self.window.ymin))
-        )
-        return xvp, yvp
-    
     # This method is responsible for rotating a single object
     def rotateWithCenter(self, object: Wireframe, angle: float):
         cx = object.getCenterObjectX()
@@ -113,8 +102,26 @@ class Canvas(QWidget):
         self.translate_objects(cx, cy)
         
         self.update()
+    
+    # This method rotates an object around a specific point
+    def rotateInPoint(self, object: Wireframe, angle: float, px: float, py: float):
+        object.translate(-px, -py)
         
-            
+        object.rotate(angle)
+        object.translate(px, py)
+        
+        self.update()
+        
+    # Window to Viewport transformation
+    def transform_coords(self, xw, yw):
+        xvp = (self.viewport_xmax - self.viewport_xmin) * (
+            (xw - self.window.xmin) / (self.window.xmax - self.window.xmin)
+        )
+        yvp = (self.viewport_ymax - self.viewport_ymin) * (
+            1 - ((yw - self.window.ymin) / (self.window.ymax - self.window.ymin))
+        )
+        return xvp, yvp
+    
     def resizeEvent(self, event):
         self.viewport_xmax = self.width()
         self.viewport_ymax = self.height()
@@ -139,24 +146,20 @@ class Canvas(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
 
-        # Draw all wireframe objects
         for obj in self.objects:
             try:
-                # Set color for drawing
                 pen = QPen(obj.color)
                 if obj.is_selected:
-                    pen.setWidth(2)  # Make selected objects more visible
+                    pen.setWidth(2)
                 painter.setPen(pen)
 
                 if obj.obj_type == ObjectType.DOT:
-                    # Draw a point (small circle)
                     if len(obj.coordinates) > 0:
                         x, y = obj.coordinates[0]
                         vx, vy = self.transform_coords(x, y)
                         painter.drawEllipse(int(vx) - 3, int(vy) - 3, 6, 6)
 
                 elif obj.obj_type == ObjectType.LINE:
-                    # Draw a line
                     if len(obj.coordinates) >= 2:
                         x1, y1 = obj.coordinates[0]
                         x2, y2 = obj.coordinates[1]
@@ -166,9 +169,7 @@ class Canvas(QWidget):
 
 
                 elif obj.obj_type == ObjectType.POLYGON:
-                    # Draw a polygon as a series of connected lines
                     if len(obj.coordinates) >= 3:
-                        # Draw edges instead of using drawPolygon
                         for i in range(len(obj.coordinates)):
                             x1, y1 = obj.coordinates[i]
                             x2, y2 = obj.coordinates[(i + 1) % len(obj.coordinates)]
@@ -176,4 +177,4 @@ class Canvas(QWidget):
                             vx2, vy2 = self.transform_coords(x2, y2)
                             painter.drawLine(int(vx1), int(vy1), int(vx2), int(vy2))
             except OverflowError as e:
-                self.console.log(f"{obj.name} não desenhado no viewport, ocorreu overflow")
+                self.console.log(f"{obj.name} was not added, OverflowError occurred.")

@@ -12,8 +12,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QColor, QPalette, QPixmap
 from PyQt6.QtCore import pyqtSignal, Qt
 
+# This class is responsible for displaying a color preview system
 class ColorPreview(QWidget):
-    """Widget to display a color preview"""
     def __init__(self, color=QColor("black"), size=30):
         super().__init__()
         self.color = color
@@ -26,8 +26,8 @@ class ColorPreview(QWidget):
         self.setStyleSheet(f"background-color: {color.name()}; border: 1px solid #888;")
         self.update()
 
+# This is the dialog with a color picker with a manual RGB and Hex input 
 class ColorPicker(QDialog):
-    """Dialog for selecting colors with both a color picker and manual RGB/Hex input"""
     colorSelected = pyqtSignal(QColor)
     
     def __init__(self, initial_color=QColor("black"), parent=None):
