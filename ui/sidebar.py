@@ -8,6 +8,8 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QGridLayout,
     QHBoxLayout,
+    QListWidget,
+    QListWidgetItem,
 )
 from PyQt6.QtGui import QColor, QPalette
 
@@ -105,7 +107,26 @@ class SideBar(QWidget):
 
         creation_group.setLayout(creation_layout)
         layout.addWidget(creation_group)
-        
+
+        # Object list group
+        self.obj_list_group = QGroupBox("Object List")
+        self.obj_list_layout = QVBoxLayout()
+
+        # Object list
+        self.obj_list = QListWidget()
+        for obj in self.canvas.objects:
+            item = QListWidgetItem(obj.name)
+            self.obj_list.addItem(item)
+        self.obj_list_layout.addWidget(self.obj_list)
+
+        # Remove object button
+        self.rmv_obj_btn = QPushButton("Remove Object")
+        self.rmv_obj_btn.clicked.connect(self.remove_object)
+        self.obj_list_layout.addWidget(self.rmv_obj_btn)
+
+        self.obj_list_group.setLayout(self.obj_list_layout)
+        layout.addWidget(self.obj_list_group)
+
         # Controls for 2D translation
         trans_group = QGroupBox("Translação")
         trans_layout = QHBoxLayout()
@@ -120,13 +141,13 @@ class SideBar(QWidget):
         trans_layout.addWidget(self.translate_btn)
         trans_group.setLayout(trans_layout)
         layout.addWidget(trans_group)
-        
+
         # Controles para Transformação 2D
         trans_group = QGroupBox("Transformação")
         trans_layout = QHBoxLayout()
-        self.dx_transform_input = QLineEdit()  
+        self.dx_transform_input = QLineEdit()
         self.dx_transform_input.setPlaceholderText("dx")
-        self.dy_transform_input = QLineEdit() 
+        self.dy_transform_input = QLineEdit()
         self.dy_transform_input.setPlaceholderText("dy")
         self.transform_btn = QPushButton("Aplicar Transformação")
         self.transform_btn.clicked.connect(self.apply_transformation)
@@ -135,7 +156,7 @@ class SideBar(QWidget):
         trans_layout.addWidget(self.transform_btn)
         trans_group.setLayout(trans_layout)
         layout.addWidget(trans_group)
-        
+
         # Controls for Rotation
         rotate_group = QGroupBox("Rotação")
         rotate_layout = QHBoxLayout()
@@ -205,7 +226,7 @@ class SideBar(QWidget):
                     "Error: A polygon requires at least 3 coordinate pairs."
                 )
                 return
-                
+
         new_obj = Wireframe(name, obj_type, coords)
         new_obj.set_color(self.selected_color)  # Apply selected color
         self.canvas.add_object(new_obj)
@@ -214,7 +235,27 @@ class SideBar(QWidget):
         # Clear inputs
         self.obj_name_input.clear()
         self.coords_input.clear()
-        
+
+        # Update object list
+        self.obj_list.addItem(QListWidgetItem(name))
+
+    def update_object_list(self):
+        self.obj_list.clear()
+        for obj in self.canvas.objects:
+            item = QListWidgetItem(obj.name)
+            self.obj_list.addItem(item)
+
+    def remove_object(self):
+        selected_items = self.obj_list.selectedItems()
+        if not selected_items:
+            self.console.log("Error: No object selected.")
+            return
+        for item in selected_items:
+            name = item.text()
+            self.canvas.remove_object(name)
+            self.obj_list.takeItem(self.obj_list.row(item))
+            self.console.log(f"Removed object: {name}")
+
     def apply_translation(self):
         try:
             dx = float(self.dx_input.text())
@@ -224,7 +265,7 @@ class SideBar(QWidget):
             return
         self.canvas.translate_objects(dx, dy)
         self.console.log(f"Transladou os objetos por ({dx}, {dy}).")
-        
+
     def apply_transformation(self):
         try:
             dx = float(self.dx_transform_input.text())
@@ -234,7 +275,7 @@ class SideBar(QWidget):
             return
         self.canvas.transform_objects(dx, dy)
         self.console.log(f"Transformou os objetos por ({dx}, {dy}).")
-        
+
     def apply_rotation(self):
         try:
             angle = float(self.angle_input.text())
@@ -246,4 +287,5 @@ class SideBar(QWidget):
 
     def clear_canvas(self):
         self.canvas.clear()
+        self.update_object_list()
         self.console.log("Canvas cleared")

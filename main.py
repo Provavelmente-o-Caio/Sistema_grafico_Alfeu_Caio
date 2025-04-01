@@ -24,12 +24,13 @@ class MainWindow(QMainWindow):
         content_layout = QVBoxLayout()
         main_layout.addLayout(content_layout)
 
-        # Canvas (Viewport)
-        self.canvas = Canvas()
-        content_layout.addWidget(self.canvas)
-
         # Terminal
         self.console = Console()
+
+        # Canvas (Viewport)
+        self.canvas = Canvas(self.console)
+        content_layout.addWidget(self.canvas)
+
         content_layout.addWidget(self.console)
         self.console.log("2D Graphics System initialized")
 
