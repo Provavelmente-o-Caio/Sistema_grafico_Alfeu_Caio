@@ -31,10 +31,33 @@ class Canvas(QWidget):
 
         self.step = 1.0  # Step size for panning
         self.zoom_factor = 1.2  # Zoom factor
+        
+        self.load_example_objects()
 
     def add_object(self, wireframe: Wireframe):
         self.objects.append(wireframe)
         self.update()  # Redraw canvas
+        
+    def load_example_objects(self):
+        # Exemplo: Ponto (Dot)
+        dot = Wireframe("Dot Example", ObjectType.DOT, [(0, 0)])
+        dot.set_color(QColor("red"))
+        self.add_object(dot)
+
+        # Exemplo: Linha (Line)
+        line = Wireframe("Line Example", ObjectType.LINE, [(-5, -5), (5, 5)])
+        line.set_color(QColor("green"))
+        self.add_object(line)
+
+        # Exemplo: Polígono (Polygon)
+        triangle = Wireframe("Polygon Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)])
+        triangle.set_color(QColor("blue"))
+        self.add_object(triangle)
+        
+        # Exemplo: Polígono (Polygon)
+        square = Wireframe("Polygon Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)])
+        square.set_color(QColor("blue"))
+        self.add_object(square)
 
     def remove_object(self, name: str):
         self.objects = [obj for obj in self.objects if obj.name != name]
@@ -42,6 +65,27 @@ class Canvas(QWidget):
 
     def clear(self):
         self.objects.clear()
+        self.update()
+    
+    # This method is responsible for 2D translation.
+    # It basically is adding and/or subtracting coordinates to all objects
+    def translate_objects(self, dx: float, dy: float):
+        for obj in self.objects:
+            obj.translate(dx, dy)
+        self.update()
+        
+    # This method is responsible for 2D transformation.
+    # It basically is mutltiplication coordinates to all objects
+    def transform_objects(self, dx: float, dy: float):
+        for obj in self.objects:
+            obj.transform(dx, dy)
+        self.update()
+    
+    # This method is responsible for 2D rotation
+    # It basically is multiplying the objects for sin and cos
+    def rotate_objects(self, angle: float):
+        for obj in self.objects:
+            obj.rotate(angle)
         self.update()
 
     # Window to Viewport transformation

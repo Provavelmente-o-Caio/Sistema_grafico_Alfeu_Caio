@@ -105,6 +105,48 @@ class SideBar(QWidget):
 
         creation_group.setLayout(creation_layout)
         layout.addWidget(creation_group)
+        
+        # Controls for 2D translation
+        trans_group = QGroupBox("Translação")
+        trans_layout = QHBoxLayout()
+        self.dx_input = QLineEdit()
+        self.dx_input.setPlaceholderText("dx")
+        self.dy_input = QLineEdit()
+        self.dy_input.setPlaceholderText("dy")
+        self.translate_btn = QPushButton("Aplicar Translação")
+        self.translate_btn.clicked.connect(self.apply_translation)
+        trans_layout.addWidget(self.dx_input)
+        trans_layout.addWidget(self.dy_input)
+        trans_layout.addWidget(self.translate_btn)
+        trans_group.setLayout(trans_layout)
+        layout.addWidget(trans_group)
+        
+        # Controles para Transformação 2D
+        trans_group = QGroupBox("Transformação")
+        trans_layout = QHBoxLayout()
+        self.dx_transform_input = QLineEdit()  
+        self.dx_transform_input.setPlaceholderText("dx")
+        self.dy_transform_input = QLineEdit() 
+        self.dy_transform_input.setPlaceholderText("dy")
+        self.transform_btn = QPushButton("Aplicar Transformação")
+        self.transform_btn.clicked.connect(self.apply_transformation)
+        trans_layout.addWidget(self.dx_transform_input)
+        trans_layout.addWidget(self.dy_transform_input)
+        trans_layout.addWidget(self.transform_btn)
+        trans_group.setLayout(trans_layout)
+        layout.addWidget(trans_group)
+        
+        # Controls for Rotation
+        rotate_group = QGroupBox("Rotação")
+        rotate_layout = QHBoxLayout()
+        self.angle_input = QLineEdit()
+        self.angle_input.setPlaceholderText("Angle")
+        self.rotate_btn = QPushButton("Aplicar Rotação")
+        self.rotate_btn.clicked.connect(self.apply_rotation)
+        rotate_layout.addWidget(self.angle_input)
+        rotate_layout.addWidget(self.rotate_btn)
+        rotate_group.setLayout(rotate_layout)
+        layout.addWidget(rotate_group)
 
         # Connect signals to slots
         self.pan_up_btn.clicked.connect(lambda: self.canvas.pan(0, 1))
@@ -172,6 +214,35 @@ class SideBar(QWidget):
         # Clear inputs
         self.obj_name_input.clear()
         self.coords_input.clear()
+        
+    def apply_translation(self):
+        try:
+            dx = float(self.dx_input.text())
+            dy = float(self.dy_input.text())
+        except ValueError:
+            self.console.log("Error: Valores inválidos para translação.")
+            return
+        self.canvas.translate_objects(dx, dy)
+        self.console.log(f"Transladou os objetos por ({dx}, {dy}).")
+        
+    def apply_transformation(self):
+        try:
+            dx = float(self.dx_transform_input.text())
+            dy = float(self.dy_transform_input.text())
+        except ValueError:
+            self.console.log("Error: Valores inválidos para transformação.")
+            return
+        self.canvas.transform_objects(dx, dy)
+        self.console.log(f"Transformou os objetos por ({dx}, {dy}).")
+        
+    def apply_rotation(self):
+        try:
+            angle = float(self.angle_input.text())
+        except ValueError:
+            self.console.log("Error: Invalid angle for rotation.")
+            return
+        self.canvas.rotate_objects(angle)
+        self.console.log(f"Rotacionou os objetos em {angle} graus.")
 
     def clear_canvas(self):
         self.canvas.clear()

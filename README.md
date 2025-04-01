@@ -29,6 +29,31 @@ Triângulo:
 Quadrado:
 - (-5, -5), (5, -5), (5, 5), (-5, 5)
 
+## Exemplos de Transformações
+
+### Translação
+A translação consiste em adicionar (ou subtrair) valores às coordenadas dos objetos.  
+Exemplo:
+- Objeto original: `[(1, 1)]`
+- Parâmetros de translação: `dx = -3` e `dy = 4`
+- Nova posição: `[(1 + (-3), 1 + 4)]` resultando em `[(-2, 5)]`  
+Utilize o método [`translate_objects`](ui/canvas.py#L? "translation method in Canvas") para aplicar essa transformação.
+
+### Transformação (Escala)
+A transformação (ou escala) multiplica as coordenadas para alterar o tamanho do objeto.  
+Exemplo:
+- Objeto original: `[(2, 3)]`
+- Parâmetros de escala: `sx = 2` e `sy = 3`
+- Nova forma: `[(2 * 2, 3 * 3)]` resultando em `[(4, 9)]`  
+Esta funcionalidade é aplicada via [`transform_objects`](ui/canvas.py#L? "transformation method in Canvas").
+
+### Rotação
+A rotação utiliza funções trigonométricas para recalcular as coordenadas dos objetos.  
+Exemplo:
+- Objeto original: `[(1, 0)]`
+- Parâmetro: `angle = 90°`
+- Nova posição: Aproximadamente `[(0, 1)]`  
+Para rotacionar objetos, utilize o método [`rotate_objects`](ui/canvas.py#L? "rotation method in Canvas").
 
 ## Como usar
 
@@ -39,4 +64,4 @@ Quadrado:
 
 Use os botões de navegação para explorar o espaço:
 - Setas para movimentação (panning)
-- Zoom In (+) e Zoom Out (-) para aumentar e diminuir o zoom
+- Zoom In (+) e Zoom Out (-) para aumentar ou diminuir o zoom
