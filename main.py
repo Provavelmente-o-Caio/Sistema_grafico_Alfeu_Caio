@@ -24,12 +24,13 @@ class MainWindow(QMainWindow):
         content_layout = QVBoxLayout()
         main_layout.addLayout(content_layout)
 
-        # Canvas (Viewport)
-        self.canvas = Canvas()
-        content_layout.addWidget(self.canvas)
-
         # Terminal
         self.console = Console()
+
+        # Canvas (Viewport)
+        self.canvas = Canvas(self.console)
+        content_layout.addWidget(self.canvas)
+
         content_layout.addWidget(self.console)
         self.console.log("2D Graphics System initialized")
 
@@ -40,7 +41,7 @@ class MainWindow(QMainWindow):
 
         # setting the basic configuration for the window
         self.setWindowTitle("Sistema básico com Window e Viewport")
-        self.setMinimumSize(800, 600)
+        self.showFullScreen()
         self.show()
 
         
