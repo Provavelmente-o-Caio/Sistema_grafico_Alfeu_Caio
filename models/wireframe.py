@@ -18,7 +18,17 @@ def create_rotation_matrix(angle):
     return np.matrix([[np.cos(angle), -np.sin(angle), 0],
                       [np.sin(angle),  np.cos(angle), 0],
                       [0,              0,             1]])
+    
+def getCenterX(cx, n):    
+    for i in range(n):
+        cx += n
+    return cx/n
 
+def getCenterY(cy, n):
+    for i in range(n):
+        cy += n
+    return cy/n
+    
 class Wireframe:
     def __init__(self, name: str, obj_type: ObjectType, coordinates: List[Tuple[float, float]]):
         self.name = name

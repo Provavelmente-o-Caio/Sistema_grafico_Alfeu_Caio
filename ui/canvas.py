@@ -99,6 +99,14 @@ class Canvas(QWidget):
         )
         return xvp, yvp
     
+    def rotateWithCenter(self, objects, angle: float):
+        if not object.is_selected:
+            for obj in self.objects:
+                obj.rotate(angle)
+            self.update()
+        
+        # TODO: faz caio
+    
     def resizeEvent(self, event):
         self.viewport_xmax = self.width()
         self.viewport_ymax = self.height()
