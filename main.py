@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
 
         # setting the basic configuration for the window
         self.setWindowTitle("Sistema básico com Window e Viewport")
-        self.setMinimumSize(800, 600)
+        self.showFullScreen()
         self.show()
 
         
