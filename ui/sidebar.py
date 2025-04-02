@@ -126,61 +126,61 @@ class SideBar(QWidget):
 
         self.obj_list_group.setLayout(self.obj_list_layout)
         layout.addWidget(self.obj_list_group)
-
+        
         # Controls for 2D translation
-        trans_group = QGroupBox("Translation")
-        trans_layout = QHBoxLayout()
+        translation_group = QGroupBox("Translation")
+        translation_layout = QHBoxLayout()
         self.dx_input = QLineEdit()
         self.dx_input.setPlaceholderText("dx")
         self.dy_input = QLineEdit()
         self.dy_input.setPlaceholderText("dy")
         self.translate_btn = QPushButton("Apply Translation")
         self.translate_btn.clicked.connect(self.apply_translation)
-        trans_layout.addWidget(self.dx_input)
-        trans_layout.addWidget(self.dy_input)
-        trans_layout.addWidget(self.translate_btn)
-        trans_group.setLayout(trans_layout)
-        layout.addWidget(trans_group)
+        translation_layout.addWidget(self.dx_input)
+        translation_layout.addWidget(self.dy_input)
+        translation_layout.addWidget(self.translate_btn)
+        translation_group.setLayout(translation_layout)
+        layout.addWidget(translation_group)
 
         # Controls for 2D transformation
-        trans_group = QGroupBox("Transformation")
-        trans_layout = QHBoxLayout()
+        transform_group = QGroupBox("Transformation")
+        transform_layout = QHBoxLayout()
         self.dx_transform_input = QLineEdit()
         self.dx_transform_input.setPlaceholderText("dx")
         self.dy_transform_input = QLineEdit()
         self.dy_transform_input.setPlaceholderText("dy")
         self.transform_btn = QPushButton("Apply Transformation")
         self.transform_btn.clicked.connect(self.apply_transformation)
-        trans_layout.addWidget(self.dx_transform_input)
-        trans_layout.addWidget(self.dy_transform_input)
-        trans_layout.addWidget(self.transform_btn)
-        trans_group.setLayout(trans_layout)
-        layout.addWidget(trans_group)
+        transform_layout.addWidget(self.dx_transform_input)
+        transform_layout.addWidget(self.dy_transform_input)
+        transform_layout.addWidget(self.transform_btn)
+        transform_group.setLayout(transform_layout)
+        layout.addWidget(transform_group)
 
         # Controls for Rotation
-        rotate_group1 = QGroupBox("Rotation")  # Changed variable name
-        rotate_layout1 = QHBoxLayout()  # Changed variable name
-        self.angle_input1 = QLineEdit()  # Changed variable name
-        self.angle_input1.setPlaceholderText("Angle")
-        self.rotate_btn1 = QPushButton("Apply Rotation")  # Changed variable name
-        self.rotate_btn1.clicked.connect(self.apply_rotation)
-        rotate_layout1.addWidget(self.angle_input1)
-        rotate_layout1.addWidget(self.rotate_btn1)
-        rotate_group1.setLayout(rotate_layout1)
-        layout.addWidget(rotate_group1)
-        
-        # Controls for Rotation (with center)
-        rotate_group = QGroupBox("Rotation Around Center")
-        rotate_layout = QHBoxLayout()
-        self.angle_input = QLineEdit()
-        self.angle_input.setPlaceholderText("Angle (degrees)")
-        self.rotate_btn = QPushButton("Rotate Around Center")
-        self.rotate_btn.clicked.connect(self.apply_rotationInCenter)
-        rotate_layout.addWidget(self.angle_input)
-        rotate_layout.addWidget(self.rotate_btn)
-        rotate_group.setLayout(rotate_layout)
-        layout.addWidget(rotate_group)
+        rotation_group = QGroupBox("Rotation")
+        rotation_layout = QHBoxLayout()  
+        self.angle_input = QLineEdit()  
+        self.angle_input.setPlaceholderText("Angle")
+        self.rotate_btn = QPushButton("Apply Rotation")  
+        self.rotate_btn.clicked.connect(self.apply_rotation)
+        rotation_layout.addWidget(self.angle_input)
+        rotation_layout.addWidget(self.rotate_btn)
+        rotation_group.setLayout(rotation_layout)
+        layout.addWidget(rotation_group)
 
+        # Controls for Rotation (with center)
+        rotation_center_group = QGroupBox("Rotation Around Center")
+        rotation_center_layout = QHBoxLayout()
+        self.center_angle_input = QLineEdit()
+        self.center_angle_input.setPlaceholderText("Angle (degrees)")
+        self.center_rotate_btn = QPushButton("Rotate Around Center")
+        self.center_rotate_btn.clicked.connect(self.apply_rotationInCenter)
+        rotation_center_layout.addWidget(self.center_angle_input)
+        rotation_center_layout.addWidget(self.center_rotate_btn)
+        rotation_center_group.setLayout(rotation_center_layout)
+        layout.addWidget(rotation_center_group)
+        
         # Connect signals to slots
         self.pan_up_btn.clicked.connect(lambda: self.canvas.pan(0, 1))
         self.pan_down_btn.clicked.connect(lambda: self.canvas.pan(0, -1))
@@ -318,7 +318,7 @@ class SideBar(QWidget):
 
     def apply_rotation(self):
         try:
-            angle = float(self.angle_input1.text())
+            angle = float(self.angle_input.text())
         except ValueError:
             self.console.log("Error: Invalid angle for rotation.")
             return
@@ -327,7 +327,7 @@ class SideBar(QWidget):
         
     def apply_rotationInCenter(self):
         try:
-            angle = float(self.angle_input.text())
+            angle = float(self.center_angle_input.text())
         except ValueError:
             self.console.log("Error: Invalid angle for rotation.")
             return
@@ -341,7 +341,7 @@ class SideBar(QWidget):
                     break
                     
         self.console.log(f"Rotated {len(selected_items)} object(s) by {angle} degrees around center.")
-        
+            
     def apply_rotationInArbitraryPoint(self):
         try:
             angle = float(self.point_angle_input.text())
