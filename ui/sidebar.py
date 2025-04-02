@@ -158,16 +158,16 @@ class SideBar(QWidget):
         layout.addWidget(trans_group)
 
         # Controls for Rotation
-        rotate_group = QGroupBox("Rotation")
-        rotate_layout = QHBoxLayout()
-        self.angle_input = QLineEdit()
-        self.angle_input.setPlaceholderText("Angle")
-        self.rotate_btn = QPushButton("Apply Rotation")
-        self.rotate_btn.clicked.connect(self.apply_rotation)
-        rotate_layout.addWidget(self.angle_input)
-        rotate_layout.addWidget(self.rotate_btn)
-        rotate_group.setLayout(rotate_layout)
-        layout.addWidget(rotate_group)
+        rotate_group1 = QGroupBox("Rotation")  # Changed variable name
+        rotate_layout1 = QHBoxLayout()  # Changed variable name
+        self.angle_input1 = QLineEdit()  # Changed variable name
+        self.angle_input1.setPlaceholderText("Angle")
+        self.rotate_btn1 = QPushButton("Apply Rotation")  # Changed variable name
+        self.rotate_btn1.clicked.connect(self.apply_rotation)
+        rotate_layout1.addWidget(self.angle_input1)
+        rotate_layout1.addWidget(self.rotate_btn1)
+        rotate_group1.setLayout(rotate_layout1)
+        layout.addWidget(rotate_group1)
         
         # Controls for Rotation (with center)
         rotate_group = QGroupBox("Rotation Around Center")
@@ -318,7 +318,7 @@ class SideBar(QWidget):
 
     def apply_rotation(self):
         try:
-            angle = float(self.angle_input.text())
+            angle = float(self.angle_input1.text())
         except ValueError:
             self.console.log("Error: Invalid angle for rotation.")
             return
