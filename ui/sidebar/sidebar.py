@@ -132,14 +132,22 @@ class SideBar(QWidget):
         # Transformations
         self.transformation_group = QGroupBox("Transformations")
         self.transformation_layout = QVBoxLayout()
-        self.rotate_window_btn = QPushButton("Rotate Window")
-        self.rotate_window_btn.clicked.connect(self.rotate_window)
+
+        self.rotation_layout = QHBoxLayout()
+        self.rotate_left_window_btn = QPushButton("Rotate <--")
+        self.rotate_right_window_btn = QPushButton("Rotate -->")
+        self.rotate_left_window_btn.clicked.connect(self.rotate_window_left)
+        self.rotate_right_window_btn.clicked.connect(self.rotate_window_right)
         self.rotate_window_input = QLineEdit()
-        self.transformations_btn = QPushButton("Open Transformations")
-        self.transformations_btn.clicked.connect(self.show_transformations_window)
+
         self.transformation_layout.addWidget(QLabel("Rotation Angle:"))
         self.transformation_layout.addWidget(self.rotate_window_input)
-        self.transformation_layout.addWidget(self.rotate_window_btn)
+        self.rotation_layout.addWidget(self.rotate_left_window_btn)
+        self.rotation_layout.addWidget(self.rotate_right_window_btn)
+
+        self.transformations_btn = QPushButton("Open Transformations")
+        self.transformations_btn.clicked.connect(self.show_transformations_window)
+        self.transformation_layout.addLayout(self.rotation_layout)
         self.transformation_layout.addWidget(self.transformations_btn)
         self.transformation_group.setLayout(self.transformation_layout)
         layout.addWidget(self.transformation_group)
@@ -240,13 +248,29 @@ class SideBar(QWidget):
         self.update_object_list()
         self.console.log("Canvas cleared")
 
-    def rotate_window(self):
+    def rotate_window_right(self):
         angle = self.rotate_window_input.text()
         if not angle:
             self.console.log("Error: Rotation angle is required.")
             return
         try:
             angle = float(angle)
+            self.canvas.window.rotate(angle)
+            self.canvas.update()
+            self.console.log(f"Rotating window by {angle} degrees")
+        except ValueError:
+            self.console.log("Error: Invalid rotation angle.")
+            return
+
+    def rotate_window_left(self):
+        angle = self.rotate_window_input.text()
+        if not angle:
+            self.console.log("Error: Rotation angle is required.")
+            return
+        try:
+            angle = -float(angle)
+            self.canvas.window.rotate(angle)
+            self.canvas.update()
             self.console.log(f"Rotating window by {angle} degrees")
         except ValueError:
             self.console.log("Error: Invalid rotation angle.")

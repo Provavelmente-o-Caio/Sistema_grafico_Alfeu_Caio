@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt
 from models.wireframe import Wireframe
 from models.window import Window
 from utils.types import ObjectType
+import numpy as np
 
 class Canvas(QWidget):
     def __init__(self, console):
@@ -114,12 +115,16 @@ class Canvas(QWidget):
         
     # Window to Viewport transformation
     def transform_coords(self, xw, yw):
-        xvp = (self.viewport_xmax - self.viewport_xmin) * (
-            (xw - self.window.xmin) / (self.window.xmax - self.window.xmin)
-        )
-        yvp = (self.viewport_ymax - self.viewport_ymin) * (
-            1 - ((yw - self.window.ymin) / (self.window.ymax - self.window.ymin))
-        )
+        xn, yn = self.window.world_to_normalized(xw, yw)
+
+        M = self.window.get_transformation_matrix()
+        point = np.matrix([xn, yn, 1])
+        transformed = point * M
+        xt, yt = float(transformed[0, 0]), float(transformed[0, 1])
+        
+        xvp = self.viewport_xmin + (self.viewport_xmax - self.viewport_xmin) * ((xt + 1) / 2)
+        yvp = self.viewport_ymin + (self.viewport_ymax - self.viewport_ymin) * (1 - ((yt + 1) / 2))
+        
         return xvp, yvp
     
     def resizeEvent(self, event):
@@ -145,6 +150,11 @@ class Canvas(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
+        # Desenha a borda vermelha
+        border_pen = QPen(QColor("red"))
+        border_pen.setWidth(2)  # Largura da borda
+        painter.setPen(border_pen)
+        painter.drawRect(20, 20, self.width()-40, self.height()-40)  # -2 para compensar a largura da borda
 
         for obj in self.objects:
             try:

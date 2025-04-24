@@ -2,22 +2,7 @@ import numpy as np
 from typing import List, Tuple
 from PyQt6.QtGui import QColor
 from utils.types import ObjectType
-
-def create_translation_matrix(dx, dy):
-    return np.matrix([[1, 0, 0],
-                      [0, 1, 0],
-                      [dx, dy, 1]])
-
-def create_scale_matrix(sx, sy):
-    return np.matrix([[sx, 0, 0],
-                      [0, sy, 0],
-                      [0, 0, 1]])
-
-def create_rotation_matrix(angle):
-    angle = np.deg2rad(angle)
-    return np.matrix([[np.cos(angle), -np.sin(angle), 0],
-                      [np.sin(angle),  np.cos(angle), 0],
-                      [0,              0,             1]])
+from utils.transformations import create_translation_matrix, create_scale_matrix, create_rotation_matrix
         
 class Wireframe:
     def __init__(self, name: str, obj_type: ObjectType, coordinates: List[Tuple[float, float]]):
