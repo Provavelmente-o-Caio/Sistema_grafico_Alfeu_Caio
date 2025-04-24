@@ -1,14 +1,10 @@
 import sys
-
 from PyQt6.QtWidgets import QMainWindow, QApplication, QWidget, QHBoxLayout, QVBoxLayout
+# from PyQt6.QtCore import QSize
 
 from ui.canvas import Canvas
 from ui.console import Console
-from ui.sidebar.sidebar import SideBar
-
-
-# from PyQt6.QtCore import QSize
-
+from ui.sidebar import SideBar
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -48,7 +44,7 @@ class MainWindow(QMainWindow):
         self.showFullScreen()
         self.show()
 
-
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()

@@ -60,6 +60,15 @@ class SideBar(QWidget):
         nav_layout.addWidget(self.zoom_in_btn, 3, 0, 1, 3)
         nav_layout.addWidget(self.zoom_out_btn, 4, 0, 1, 3)
 
+        # Rotation controls
+        self.rotate_left_btn = QPushButton("← Rotate")
+        self.rotate_degree_input = QLineEdit()
+        self.rotate_right_btn = QPushButton("Rotate →")
+
+        nav_layout.addWidget(self.rotate_left_btn, 5, 0)
+        nav_layout.addWidget(self.rotate_degree_input, 5, 1)
+        nav_layout.addWidget(self.rotate_right_btn, 5, 2)
+
         nav_group.setLayout(nav_layout)
         layout.addWidget(nav_group)
 
@@ -148,7 +157,24 @@ class SideBar(QWidget):
         self.add_obj_btn.clicked.connect(self.add_object)
         self.clear_btn.clicked.connect(self.clear_canvas)
 
+        self.rotate_right_btn.clicked.connect(self.rotate_window_right)
+        self.rotate_left_btn.clicked.connect(self.rotate_window_left)
+
         self.setMinimumSize(200, 300)
+
+    def rotate_window_right(self):
+        angle = self.rotate_degree_input.text()
+        if not angle:
+            self.console.log("Error: Rotate Degrees not specified")
+            return
+        self.canvas.rotate_window(int(angle))
+
+    def rotate_window_left(self):
+        angle = self.rotate_degree_input.text()
+        if not angle:
+            self.console.log("Error: Rotate Degrees not specified")
+            return
+        self.canvas.rotate_window(-int(angle))
 
     def update_color_preview(self):
         self.color_preview.setStyleSheet(

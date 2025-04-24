@@ -1,11 +1,13 @@
+import math
 from typing import List
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
-from PyQt6.QtCore import Qt
 
-from models.wireframe import Wireframe
+from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
+from PyQt6.QtWidgets import QWidget
+
 from models.window import Window
+from models.wireframe import Wireframe
 from utils.types import ObjectType
+
 
 class Canvas(QWidget):
     def __init__(self, console):
@@ -30,9 +32,9 @@ class Canvas(QWidget):
         self.viewport_xmax = self.width()
         self.viewport_ymax = self.height()
 
-        self.step = 1.0  # Step size for panning
+        self.step = 0.1  # Step size for panning
         self.zoom_factor = 1.2  # Zoom factor
-        
+
         # Loads the example objects for better utilization of the software
         self.load_example_objects()
 
@@ -40,25 +42,31 @@ class Canvas(QWidget):
     def add_object(self, wireframe: Wireframe):
         if any(wireframe.name == obj.name for obj in self.objects):
             raise ValueError
-        
+
         self.objects.append(wireframe)
-        self.update()  
-        
+        self.update()
+
     # Loads the preset objects
     def load_example_objects(self):
         dot = Wireframe("Dot Example", ObjectType.DOT, [(0, 0)])
         dot.set_color(QColor("red"))
         self.add_object(dot)
 
-        line = Wireframe("Line Example", ObjectType.LINE, [(-5, -5), (5, 5)])
+        line = Wireframe("Line Example", ObjectType.LINE, [(-0.5, -0.5), (0.5, 0.5)])
         line.set_color(QColor("green"))
         self.add_object(line)
 
-        triangle = Wireframe("Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)])
+        triangle = Wireframe(
+            "Triangle Example", ObjectType.POLYGON, [(0, 0), (0.5, 0.8), (-0.5, 0.8)]
+        )
         triangle.set_color(QColor("blue"))
         self.add_object(triangle)
-        
-        square = Wireframe("Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)])
+
+        square = Wireframe(
+            "Square Example",
+            ObjectType.POLYGON,
+            [(-0.5, -0.5), (0.5, -0.5), (0.5, 0.5), (-0.5, 0.5)],
+        )
         square.set_color(QColor("blue"))
         self.add_object(square)
 
@@ -69,21 +77,21 @@ class Canvas(QWidget):
     def clear(self):
         self.objects.clear()
         self.update()
-    
+
     # This method is responsible for 2D translation.
     # It basically is adding and/or subtracting coordinates to all objects
     def translate_objects(self, dx: float, dy: float):
         for obj in self.objects:
             obj.translate(dx, dy)
         self.update()
-        
+
     # This method is responsible for 2D transformation.
     # It basically is mutltiplication coordinates to all objects
     def transform_objects(self, dx: float, dy: float):
         for obj in self.objects:
             obj.transform(dx, dy)
         self.update()
-    
+
     # This method is responsible for 2D rotation
     # It basically is multiplying the objects for sin and cos
     def rotate_objects(self, angle: float):
@@ -95,33 +103,48 @@ class Canvas(QWidget):
     def rotateWithCenter(self, object: Wireframe, angle: float):
         cx = object.getCenterObjectX()
         cy = object.getCenterObjectY()
-        
+
         self.translate_objects(-cx, -cy)
         object.rotate(angle)
-        
+
         self.translate_objects(cx, cy)
-        
+
         self.update()
-    
+
     # This method rotates an object around a specific point
     def rotateInPoint(self, object: Wireframe, angle: float, px: float, py: float):
         object.translate(-px, -py)
-        
+
         object.rotate(angle)
         object.translate(px, py)
-        
+
         self.update()
-        
+
+    def rotate_window(self, angle: float):
+        self.window.rotate(angle)
+        self.update()
+
     # Window to Viewport transformation
-    def transform_coords(self, xw, yw):
-        xvp = (self.viewport_xmax - self.viewport_xmin) * (
-            (xw - self.window.xmin) / (self.window.xmax - self.window.xmin)
-        )
-        yvp = (self.viewport_ymax - self.viewport_ymin) * (
-            1 - ((yw - self.window.ymin) / (self.window.ymax - self.window.ymin))
-        )
-        return xvp, yvp
-    
+    def transform_coords(self, x_wc, y_wc):
+        # Step 1: Normalização para SCN
+        nx = 2 * (x_wc - self.window.xmin) / self.window.width() - 1
+        ny = 2 * (y_wc - self.window.ymin) / self.window.height() - 1
+
+        # Step 2: Rotação no SCN (inversa da rotação da window)
+        rad = -math.radians(self.window.rotation_angle)
+        nx_rot = nx * math.cos(rad) - ny * math.sin(rad)
+        ny_rot = nx * math.sin(rad) + ny * math.cos(rad)
+
+        # Step 3: Transformação para PPC
+        x_vp = (self.viewport_xmax - self.viewport_xmin) * ((nx_rot + 1) / 2)
+        y_vp = (self.viewport_ymax - self.viewport_ymin) * (1 - ((ny_rot + 1) / 2))
+
+        return x_vp, y_vp
+
+    def update_obj_scn_coordinates(self):
+        for obj in self.objects:
+            obj.scn_coordinates = []
+
     def resizeEvent(self, event):
         self.viewport_xmax = self.width()
         self.viewport_ymax = self.height()
@@ -145,7 +168,6 @@ class Canvas(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-
         for obj in self.objects:
             try:
                 pen = QPen(obj.color)
@@ -166,7 +188,6 @@ class Canvas(QWidget):
                         vx1, vy1 = self.transform_coords(x1, y1)
                         vx2, vy2 = self.transform_coords(x2, y2)
                         painter.drawLine(int(vx1), int(vy1), int(vx2), int(vy2))
-
 
                 elif obj.obj_type == ObjectType.POLYGON:
                     if len(obj.coordinates) >= 3:
