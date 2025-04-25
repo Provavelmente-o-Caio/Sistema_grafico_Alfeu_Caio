@@ -1,9 +1,12 @@
-import numpy as np
 from typing import List, Tuple
+
+import numpy as np
 from PyQt6.QtGui import QColor
-from utils.types import ObjectType
+
 from utils.transformations import create_translation_matrix, create_scale_matrix, create_rotation_matrix
-        
+from utils.types import ObjectType
+
+
 class Wireframe:
     def __init__(self, name: str, obj_type: ObjectType, coordinates: List[Tuple[float, float]]):
         self.name = name
@@ -20,7 +23,7 @@ class Wireframe:
 
     def deselect(self):
         self.is_selected = False
-        
+
     def translate(self, dx: float, dy: float):
         T = create_translation_matrix(dx, dy)
         new_coords = []
@@ -29,7 +32,7 @@ class Wireframe:
             transformed_point = point * T
             new_coords.append((float(transformed_point[0, 0]), float(transformed_point[0, 1])))
         self.coordinates = new_coords
-        
+
     def transform(self, sx: float, sy: float):
         S = create_scale_matrix(sx, sy)
         new_coords = []
@@ -38,7 +41,7 @@ class Wireframe:
             transformed_point = point * S
             new_coords.append((float(transformed_point[0, 0]), float(transformed_point[0, 1])))
         self.coordinates = new_coords
-        
+
     def rotate(self, angle: float):
         R = create_rotation_matrix(angle)
         new_coords = []
@@ -47,11 +50,11 @@ class Wireframe:
             transformed_point = point * R
             new_coords.append((float(transformed_point[0, 0]), float(transformed_point[0, 1])))
         self.coordinates = new_coords
-    
+
     def getCenterObjectX(self):
         if not self.coordinates:
             return 0
-        
+
         sum_x = 0
         for x, _ in self.coordinates:
             sum_x += x
@@ -60,8 +63,20 @@ class Wireframe:
     def getCenterObjectY(self):
         if not self.coordinates:
             return 0
-        
+
         sum_y = 0
         for _, y in self.coordinates:
             sum_y += y
         return sum_y / len(self.coordinates)
+
+    def export_coordinates(self):
+        return self.coordinates
+
+    def get_name(self):
+        return self.name
+
+    def get_color(self):
+        return self.color.name()
+
+    def get_obj_type(self):
+        return self.obj_type

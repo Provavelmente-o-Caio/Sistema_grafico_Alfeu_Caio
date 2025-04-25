@@ -20,5 +20,5 @@ def create_coord_transform_matrix(cx, cy, angle, sx, sy):
     T = create_translation_matrix(-cx, -cy)
     R = create_rotation_matrix(angle)
     S = create_scale_matrix(sx, sy)
-    M = T @ R @ S # Cria a matriz de transformação de coordenadas
+    M = T @ R @ S
     return M

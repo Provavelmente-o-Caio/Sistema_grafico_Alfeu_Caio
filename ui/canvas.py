@@ -1,17 +1,20 @@
 from typing import List
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
-from PyQt6.QtCore import Qt
 
-from models.wireframe import Wireframe
-from models.window import Window
-from utils.types import ObjectType
 import numpy as np
+from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
+from PyQt6.QtWidgets import QWidget
+
+from models.window import Window
+from models.wireframe import Wireframe
+from utils.descritorOBJ import DescritorOBJ
+from utils.types import ObjectType
+
 
 class Canvas(QWidget):
     def __init__(self, console):
         super().__init__()
         self.console = console
+        self.descritor = DescritorOBJ()
         self.setAutoFillBackground(True)
 
         # Set background color
@@ -33,18 +36,21 @@ class Canvas(QWidget):
 
         self.step = 1.0  # Step size for panning
         self.zoom_factor = 1.2  # Zoom factor
-        
+
         # Loads the example objects for better utilization of the software
         self.load_example_objects()
 
     # Adds a new object in the canvas
     def add_object(self, wireframe: Wireframe):
-        if any(wireframe.name == obj.name for obj in self.objects):
-            raise ValueError
-        
-        self.objects.append(wireframe)
-        self.update()  
-        
+        try:
+            if any(wireframe.name == obj.name for obj in self.objects):
+                raise ValueError
+
+            self.objects.append(wireframe)
+            self.update()
+        except ValueError:
+            self.console.log(f"Object {wireframe.name} already exists")
+
     # Loads the preset objects
     def load_example_objects(self):
         dot = Wireframe("Dot Example", ObjectType.DOT, [(0, 0)])
@@ -58,9 +64,9 @@ class Canvas(QWidget):
         triangle = Wireframe("Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)])
         triangle.set_color(QColor("blue"))
         self.add_object(triangle)
-        
+
         square = Wireframe("Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)])
-        square.set_color(QColor("blue"))
+        square.set_color(QColor("yellow"))
         self.add_object(square)
 
     def remove_object(self, name: str):
@@ -70,21 +76,21 @@ class Canvas(QWidget):
     def clear(self):
         self.objects.clear()
         self.update()
-    
+
     # This method is responsible for 2D translation.
     # It basically is adding and/or subtracting coordinates to all objects
     def translate_objects(self, dx: float, dy: float):
         for obj in self.objects:
             obj.translate(dx, dy)
         self.update()
-        
+
     # This method is responsible for 2D transformation.
     # It basically is mutltiplication coordinates to all objects
     def transform_objects(self, dx: float, dy: float):
         for obj in self.objects:
             obj.transform(dx, dy)
         self.update()
-    
+
     # This method is responsible for 2D rotation
     # It basically is multiplying the objects for sin and cos
     def rotate_objects(self, angle: float):
@@ -96,23 +102,23 @@ class Canvas(QWidget):
     def rotateWithCenter(self, object: Wireframe, angle: float):
         cx = object.getCenterObjectX()
         cy = object.getCenterObjectY()
-        
+
         self.translate_objects(-cx, -cy)
         object.rotate(angle)
-        
+
         self.translate_objects(cx, cy)
-        
+
         self.update()
-    
+
     # This method rotates an object around a specific point
     def rotateInPoint(self, object: Wireframe, angle: float, px: float, py: float):
         object.translate(-px, -py)
-        
+
         object.rotate(angle)
         object.translate(px, py)
-        
+
         self.update()
-        
+
     # Window to Viewport transformation
     def transform_coords(self, xw, yw):
         xn, yn = self.window.world_to_normalized(xw, yw)
@@ -121,12 +127,12 @@ class Canvas(QWidget):
         point = np.matrix([xn, yn, 1])
         transformed = point * M
         xt, yt = float(transformed[0, 0]), float(transformed[0, 1])
-        
+
         xvp = self.viewport_xmin + (self.viewport_xmax - self.viewport_xmin) * ((xt + 1) / 2)
         yvp = self.viewport_ymin + (self.viewport_ymax - self.viewport_ymin) * (1 - ((yt + 1) / 2))
-        
+
         return xvp, yvp
-    
+
     def resizeEvent(self, event):
         self.viewport_xmax = self.width()
         self.viewport_ymax = self.height()
@@ -154,7 +160,7 @@ class Canvas(QWidget):
         border_pen = QPen(QColor("red"))
         border_pen.setWidth(2)  # Largura da borda
         painter.setPen(border_pen)
-        painter.drawRect(20, 20, self.width()-40, self.height()-40)  # -2 para compensar a largura da borda
+        painter.drawRect(20, 20, self.width() - 40, self.height() - 40)  # -2 para compensar a largura da borda
 
         for obj in self.objects:
             try:
@@ -188,3 +194,12 @@ class Canvas(QWidget):
                             painter.drawLine(int(vx1), int(vy1), int(vx2), int(vy2))
             except OverflowError as e:
                 self.console.log(f"{obj.name} was not added, OverflowError occurred.")
+
+    def export_objects(self):
+        self.descritor.objs = self.objects.copy()
+        self.descritor.export_file()
+
+    def import_objects(self, path):
+        new_objects = self.descritor.import_file(path)
+        for new_object in new_objects:
+            self.add_object(new_object)

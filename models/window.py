@@ -59,7 +59,7 @@ class Window:
         self.ymax = ycenter + new_height / 2
 
     def rotate(self, angle: float):
-        self.rotation_angle += angle % 360
+        self.rotation_angle = (self.rotation_angle + angle) % 360
 
     def world_to_normalized(self, xw, yw):
         # Converte de World Coordinates para Normalized Device Coordinates

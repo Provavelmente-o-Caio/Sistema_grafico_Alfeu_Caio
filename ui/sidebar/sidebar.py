@@ -1,4 +1,5 @@
 from PyQt6.QtGui import QColor, QPalette
+from PyQt6.QtWidgets import QFileDialog
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -103,10 +104,6 @@ class SideBar(QWidget):
         self.add_obj_btn = QPushButton("Add Object")
         creation_layout.addWidget(self.add_obj_btn)
 
-        # Clear all button
-        self.clear_btn = QPushButton("Clear All")
-        creation_layout.addWidget(self.clear_btn)
-
         creation_group.setLayout(creation_layout)
         layout.addWidget(creation_group)
 
@@ -125,6 +122,20 @@ class SideBar(QWidget):
         self.rmv_obj_btn = QPushButton("Remove Object")
         self.rmv_obj_btn.clicked.connect(self.remove_object)
         self.obj_list_layout.addWidget(self.rmv_obj_btn)
+
+        # Clear all button
+        self.clear_btn = QPushButton("Clear All")
+        self.obj_list_layout.addWidget(self.clear_btn)
+
+        # Export objects
+        self.export_btn = QPushButton("Export Objects")
+        self.export_btn.clicked.connect(self.export_objects)
+        self.obj_list_layout.addWidget(self.export_btn)
+
+        # Import objects
+        self.import_btn = QPushButton("Import File")
+        self.import_btn.clicked.connect(self.import_objects)
+        self.obj_list_layout.addWidget(self.import_btn)
 
         self.obj_list_group.setLayout(self.obj_list_layout)
         layout.addWidget(self.obj_list_group)
@@ -211,6 +222,9 @@ class SideBar(QWidget):
         new_obj = Wireframe(name, obj_type, coords)
         new_obj.set_color(self.selected_color)  # Apply selected color
         try:
+            if any(new_obj.name == obj.name for obj in self.canvas.objects):
+                raise ValueError
+
             self.canvas.add_object(new_obj)
             self.console.log(f"Added {type_str.lower()}: {name}")
             self.obj_list.addItem(QListWidgetItem(name))
@@ -275,3 +289,25 @@ class SideBar(QWidget):
         except ValueError:
             self.console.log("Error: Invalid rotation angle.")
             return
+
+    def export_objects(self):
+        if len(self.canvas.objects) > 0:
+            self.console.log("Exporting objects")
+            self.canvas.export_objects()
+        else:
+            self.console.log("No objects to be exported.")
+
+    def import_objects(self):
+
+        file_dialog = QFileDialog(self)
+        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+        file_dialog.setNameFilter("Wavefront Files (*.obj);;All Files (*)")
+
+        if file_dialog.exec():
+            selected_file = file_dialog.selectedFiles()[0]
+            if selected_file.endswith(".obj"):
+                self.canvas.import_objects(selected_file)
+                self.console.log(f"Imported objects from {selected_file}")
+                self.update_object_list()
+            else:
+                self.console.log("Error: Selected file is not a .obj file.")
