@@ -71,7 +71,7 @@ class TransformationWindow(QWidget):
         self.center_angle_input = QLineEdit()
         self.center_angle_input.setPlaceholderText("Angle (degrees)")
         self.center_rotate_btn = QPushButton("Rotate Around Center")
-        self.center_rotate_btn.clicked.connect(self.apply_rotationInCenter)
+        self.center_rotate_btn.clicked.connect(self.apply_rotation_in_center)
         rotate_center_layout.addWidget(self.center_angle_input)
         rotate_center_layout.addWidget(self.center_rotate_btn)
         rotate_center_group.setLayout(rotate_center_layout)
@@ -99,7 +99,7 @@ class TransformationWindow(QWidget):
         rotate_point_layout.addLayout(point_row)
 
         self.rotate_point_btn = QPushButton("Rotate Around Point")
-        self.rotate_point_btn.clicked.connect(self.apply_rotationInArbitraryPoint)
+        self.rotate_point_btn.clicked.connect(self.apply_rotation_in_arbitrary_point)
         rotate_point_layout.addWidget(self.rotate_point_btn)
 
         rotate_point_group.setLayout(rotate_point_layout)
@@ -134,7 +134,7 @@ class TransformationWindow(QWidget):
         self.canvas.rotate_objects(angle)
         self.console.log(f"Rotated objects by {angle} degrees.")
 
-    def apply_rotationInCenter(self):
+    def apply_rotation_in_center(self):
         try:
             angle = float(self.center_angle_input.text())
         except ValueError:
@@ -153,7 +153,7 @@ class TransformationWindow(QWidget):
             f"Rotated {len(selected_items)} object(s) by {angle} degrees around center."
         )
 
-    def apply_rotationInArbitraryPoint(self):
+    def apply_rotation_in_arbitrary_point(self):
         try:
             angle = float(self.point_angle_input.text())
             px = float(self.point_x_input.text())

@@ -29,16 +29,20 @@ class Canvas(QWidget):
 
         # Window and viewport setup
         self.window = Window()
-        self.viewport_xmin = 0
-        self.viewport_ymin = 0
-        self.viewport_xmax = self.width()
-        self.viewport_ymax = self.height()
+        self.border_width = 200
+        self.viewport_xmin = self.border_width
+        self.viewport_ymin = self.border_width
+        self.viewport_xmax = self.width() - self.border_width
+        self.viewport_ymax = self.height() - self.border_width
 
         self.step = 1.0  # Step size for panning
         self.zoom_factor = 1.2  # Zoom factor
 
         # Loads the example objects for better utilization of the software
         self.load_example_objects()
+
+        # Setting the line clipping Algorithm
+        self.line_clipping_algorithm = "Cohen-Sutherland"
 
     # Adds a new object in the canvas
     def add_object(self, wireframe: Wireframe):
@@ -134,8 +138,8 @@ class Canvas(QWidget):
         return xvp, yvp
 
     def resizeEvent(self, event):
-        self.viewport_xmax = self.width()
-        self.viewport_ymax = self.height()
+        self.viewport_xmax = self.width() - self.border_width
+        self.viewport_ymax = self.height() - self.border_width
         self.update()
 
     # Pan the window
@@ -160,7 +164,8 @@ class Canvas(QWidget):
         border_pen = QPen(QColor("red"))
         border_pen.setWidth(2)  # Largura da borda
         painter.setPen(border_pen)
-        painter.drawRect(20, 20, self.width() - 40, self.height() - 40)  # -2 para compensar a largura da borda
+        painter.drawRect(self.viewport_xmin, self.viewport_ymin, self.viewport_xmax - self.border_width,
+                         self.viewport_ymax - self.border_width)
 
         for obj in self.objects:
             try:
@@ -173,7 +178,7 @@ class Canvas(QWidget):
                     if len(obj.coordinates) > 0:
                         x, y = obj.coordinates[0]
                         vx, vy = self.transform_coords(x, y)
-                        painter.drawEllipse(int(vx) - 3, int(vy) - 3, 6, 6)
+                        self.point_clipping(painter, vx, vy)
 
                 elif obj.obj_type == ObjectType.LINE:
                     if len(obj.coordinates) >= 2:
@@ -181,8 +186,7 @@ class Canvas(QWidget):
                         x2, y2 = obj.coordinates[1]
                         vx1, vy1 = self.transform_coords(x1, y1)
                         vx2, vy2 = self.transform_coords(x2, y2)
-                        painter.drawLine(int(vx1), int(vy1), int(vx2), int(vy2))
-
+                        self.line_clipping(painter, vx1, vy1, vx2, vy2)
 
                 elif obj.obj_type == ObjectType.POLYGON:
                     if len(obj.coordinates) >= 3:
@@ -203,3 +207,107 @@ class Canvas(QWidget):
         new_objects = self.descritor.import_file(path)
         for new_object in new_objects:
             self.add_object(new_object)
+
+    def point_clipping(self, painter, vx, vy):
+        if self.viewport_xmin <= vx <= self.viewport_xmax and self.viewport_ymin <= vy <= self.viewport_ymax:
+            painter.drawEllipse(int(vx) - 3, int(vy) - 3, 6, 6)
+
+    def line_clipping(self, painter, vx1, vy1, vx2, vy2):
+        if self.line_clipping_algorithm == "Cohen-Sutherland":
+            self.cohen_sutherland(painter, vx1, vy1, vx2, vy2)
+        elif self.line_clipping_algorithm == "Liang-Barsky":
+            self.liang_barsky(painter, vx1, vy1, vx2, vy2)
+
+    def set_line_clipping_algorithm(self, line_clipping_algorithm):
+        self.line_clipping_algorithm = line_clipping_algorithm
+        self.update()
+
+    def cohen_sutherland(self, painter, vx1, vy1, vx2, vy2):
+        cs_value_p1 = self.cohen_sutherland_point(vx1, vy1)
+        cs_value_p2 = self.cohen_sutherland_point(vx2, vy2)
+        x1, y1 = vx1, vy1
+        x2, y2 = vx2, vy2
+        while True:
+            if cs_value_p1 & cs_value_p2:
+                return
+            elif not (cs_value_p1 | cs_value_p2):
+                painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+                return
+            else:
+                m = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else None
+                if cs_value_p1 != 0:
+                    x1, y1 = self.cohen_sutherland_redraw(cs_value_p1, x1, y1, m)
+                    cs_value_p1 = self.cohen_sutherland_point(x1, y1)
+                else:
+                    x2, y2 = self.cohen_sutherland_redraw(cs_value_p2, x2, y2, m)
+                    cs_value_p2 = self.cohen_sutherland_point(x2, y2)
+
+    def cohen_sutherland_point(self, vx, vy):
+        cs_value = 0
+
+        if vx < self.viewport_xmin:
+            cs_value |= 1  # 0001/left
+        elif vx > self.viewport_xmax:
+            cs_value |= 2  # 0010/right
+
+        if vy > self.viewport_ymax:
+            cs_value |= 4  # 0100/bottom
+        elif vy < self.viewport_ymin:
+            cs_value |= 8  # 1000/top
+
+        return cs_value
+
+    def cohen_sutherland_redraw(self, cs_value, vx, vy, m):
+        x, y = vx, vy
+        if cs_value & 1:  # 0001/left
+            y = m * (self.viewport_xmin - vx) + vy if m else vy
+            x = self.viewport_xmin
+        if cs_value & 2:  # 0010/right
+            y = m * (self.viewport_xmax - vx) + vy if m else vy
+            x = self.viewport_xmax
+        if cs_value & 4:  # 0100/bottom
+            x = vx + (1 / m) * (self.viewport_ymax - vy) if m else vx
+            y = self.viewport_ymax
+        if cs_value & 8:  # 1000/top
+            x = vx + (1 / m) * (self.viewport_ymin - vy) if m else vx
+            y = self.viewport_ymin
+
+        return x, y
+
+    def liang_barsky(self, painter, vx1, vy1, vx2, vy2):
+        delta_x = vx2 - vx1
+        delta_y = vy2 - vy1
+
+        p = [-delta_x, delta_x, -delta_y, delta_y]
+
+        q = [vx1 - self.viewport_xmin, self.viewport_xmax - vx1, vy1 - self.viewport_ymin, self.viewport_ymax - vy1]
+
+        zeta1 = 0
+        zeta2 = 1
+        for i in range(4):
+            if p[i] == 0:  # paralela a um dos limites
+                if q[i] < 0:  # fora dos limites
+                    return
+            else:
+                r = q[i] / p[i]
+                if p[i] < 0:  # outside --> in
+                    zeta1 = max(zeta1, r)
+                else:  # inside --> out
+                    zeta2 = min(zeta2, r)
+
+        x1, y1 = vx1, vy1
+        x2, y2 = vx2, vy2
+
+        if zeta1 > zeta2:
+            return
+        if zeta1 != 0:
+            x1 = vx1 + zeta1 * delta_x
+            y1 = vy1 + zeta1 * delta_y
+        if zeta2 != 1:
+            x2 = vx1 + zeta2 * delta_x
+            y2 = vy1 + zeta2 * delta_y
+
+        painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+
+    def poligon_clipping(self, painter, obj):  # weiler-atherton
+        pass

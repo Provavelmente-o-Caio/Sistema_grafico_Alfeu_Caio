@@ -1,5 +1,5 @@
 from PyQt6.QtGui import QColor, QPalette
-from PyQt6.QtWidgets import QFileDialog
+from PyQt6.QtWidgets import QFileDialog, QRadioButton
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -163,6 +163,23 @@ class SideBar(QWidget):
         self.transformation_group.setLayout(self.transformation_layout)
         layout.addWidget(self.transformation_group)
 
+        # Clipping Algorithm
+        self.clipping_group = QGroupBox("Clipping")
+        self.clipping_layout = QVBoxLayout()
+
+        self.clipping_label = QLabel("Clipping Algorithm")
+        self.line_clipping_algorithm_cs = QRadioButton("Cohen-Sutherland")
+        self.line_clipping_algorithm_cs.setChecked(True)
+        self.line_clipping_algorithm_lb = QRadioButton("Liang-Barsky")
+        self.line_clipping_algorithm_lb.setChecked(False)
+        self.line_clipping_algorithm_cs.toggled.connect(self.set_line_clipping_algorithm)
+        self.line_clipping_algorithm_lb.toggled.connect(self.set_line_clipping_algorithm)
+        self.clipping_layout.addWidget(self.clipping_label)
+        self.clipping_layout.addWidget(self.line_clipping_algorithm_cs)
+        self.clipping_layout.addWidget(self.line_clipping_algorithm_lb)
+        self.clipping_group.setLayout(self.clipping_layout)
+        layout.addWidget(self.clipping_group)
+
         # Connect signals to slots
         self.pan_up_btn.clicked.connect(lambda: self.canvas.pan(0, 1))
         self.pan_down_btn.clicked.connect(lambda: self.canvas.pan(0, -1))
@@ -311,3 +328,9 @@ class SideBar(QWidget):
                 self.update_object_list()
             else:
                 self.console.log("Error: Selected file is not a .obj file.")
+
+    def set_line_clipping_algorithm(self, checked):
+        line_clipping_algorithm = self.sender()
+        if checked:
+            self.console.log(f"Setting line clipping algorithm to {line_clipping_algorithm.text()}")
+            self.canvas.set_line_clipping_algorithm(line_clipping_algorithm.text())
