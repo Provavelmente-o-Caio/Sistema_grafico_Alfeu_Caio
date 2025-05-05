@@ -26,28 +26,21 @@ class Wireframe:
 
     def translate(self, dx: float, dy: float):
         T = create_translation_matrix(dx, dy)
-        new_coords = []
-        for x, y in self.coordinates:
-            point = np.matrix([x, y, 1])
-            transformed_point = point * T
-            new_coords.append((float(transformed_point[0, 0]), float(transformed_point[0, 1])))
-        self.coordinates = new_coords
+        self.transformation(op=T)
 
     def transform(self, sx: float, sy: float):
         S = create_scale_matrix(sx, sy)
-        new_coords = []
-        for x, y in self.coordinates:
-            point = np.matrix([x, y, 1])
-            transformed_point = point * S
-            new_coords.append((float(transformed_point[0, 0]), float(transformed_point[0, 1])))
-        self.coordinates = new_coords
+        self.transformation(op=S)
 
     def rotate(self, angle: float):
         R = create_rotation_matrix(angle)
+        self.transformation(op=R)
+
+    def transformation(self, obj=None, op=None):
         new_coords = []
         for x, y in self.coordinates:
             point = np.matrix([x, y, 1])
-            transformed_point = point * R
+            transformed_point = point * op
             new_coords.append((float(transformed_point[0, 0]), float(transformed_point[0, 1])))
         self.coordinates = new_coords
 

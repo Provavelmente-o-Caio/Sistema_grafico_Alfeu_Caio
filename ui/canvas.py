@@ -29,11 +29,11 @@ class Canvas(QWidget):
 
         # Window and viewport setup
         self.window = Window()
-        self.border_width = 200
-        self.viewport_xmin = self.border_width
-        self.viewport_ymin = self.border_width
-        self.viewport_xmax = self.width() - self.border_width
-        self.viewport_ymax = self.height() - self.border_width
+        self.border_width: int = 200
+        self.viewport_xmin: int = self.border_width
+        self.viewport_ymin: int = self.border_width
+        self.viewport_xmax: int = self.width() - self.border_width
+        self.viewport_ymax: int = self.height() - self.border_width
 
         self.step = 1.0  # Step size for panning
         self.zoom_factor = 1.2  # Zoom factor
@@ -65,11 +65,15 @@ class Canvas(QWidget):
         line.set_color(QColor("green"))
         self.add_object(line)
 
-        triangle = Wireframe("Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)])
+        triangle = Wireframe(
+            "Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)]
+        )
         triangle.set_color(QColor("blue"))
         self.add_object(triangle)
 
-        square = Wireframe("Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)])
+        square = Wireframe(
+            "Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)]
+        )
         square.set_color(QColor("yellow"))
         self.add_object(square)
 
@@ -83,23 +87,20 @@ class Canvas(QWidget):
 
     # This method is responsible for 2D translation.
     # It basically is adding and/or subtracting coordinates to all objects
-    def translate_objects(self, dx: float, dy: float):
-        for obj in self.objects:
-            obj.translate(dx, dy)
+    def translate_objects(self, object: Wireframe, dx: float, dy: float):
+        object.translate(dx, dy)
         self.update()
 
     # This method is responsible for 2D transformation.
-    # It basically is mutltiplication coordinates to all objects
-    def transform_objects(self, dx: float, dy: float):
-        for obj in self.objects:
-            obj.transform(dx, dy)
+    # It basically is mutltiplication coordinates to an objects
+    def transform_objects(self, object: Wireframe, dx: float, dy: float):
+        object.transform(dx, dy)
         self.update()
 
     # This method is responsible for 2D rotation
     # It basically is multiplying the objects for sin and cos
-    def rotate_objects(self, angle: float):
-        for obj in self.objects:
-            obj.rotate(angle)
+    def rotate_objects(self, object: Wireframe, angle: float):
+        object.rotate(angle)
         self.update()
 
     # This method is responsible for rotating a single object
@@ -132,8 +133,12 @@ class Canvas(QWidget):
         transformed = point * M
         xt, yt = float(transformed[0, 0]), float(transformed[0, 1])
 
-        xvp = self.viewport_xmin + (self.viewport_xmax - self.viewport_xmin) * ((xt + 1) / 2)
-        yvp = self.viewport_ymin + (self.viewport_ymax - self.viewport_ymin) * (1 - ((yt + 1) / 2))
+        xvp = self.viewport_xmin + (self.viewport_xmax - self.viewport_xmin) * (
+                (xt + 1) / 2
+        )
+        yvp = self.viewport_ymin + (self.viewport_ymax - self.viewport_ymin) * (
+                1 - ((yt + 1) / 2)
+        )
 
         return xvp, yvp
 
@@ -144,6 +149,9 @@ class Canvas(QWidget):
 
     # Pan the window
     def pan(self, dx, dy):
+        """
+        Pan the window by dx and dy.
+        """
         self.window.pan(dx * self.step, dy * self.step)
         self.update()
 
@@ -162,10 +170,14 @@ class Canvas(QWidget):
 
         # Desenha a borda vermelha
         border_pen = QPen(QColor("red"))
-        border_pen.setWidth(2)  # Largura da borda
+        border_pen.setWidth(2)  # border width
         painter.setPen(border_pen)
-        painter.drawRect(self.viewport_xmin, self.viewport_ymin, self.viewport_xmax - self.border_width,
-                         self.viewport_ymax - self.border_width)
+        painter.drawRect(
+            self.viewport_xmin,
+            self.viewport_ymin,
+            self.viewport_xmax - self.border_width,
+            self.viewport_ymax - self.border_width,
+        )
 
         for obj in self.objects:
             try:
@@ -186,18 +198,16 @@ class Canvas(QWidget):
                         x2, y2 = obj.coordinates[1]
                         vx1, vy1 = self.transform_coords(x1, y1)
                         vx2, vy2 = self.transform_coords(x2, y2)
-                        self.line_clipping(painter, vx1, vy1, vx2, vy2)
+                        clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
+                        if clipped_line:
+                            vx1, vy1, vx2, vy2 = clipped_line
+                            painter.drawLine(int(vx1), int(vy1), int(vx2), int(vy2))
 
                 elif obj.obj_type == ObjectType.POLYGON:
                     if len(obj.coordinates) >= 3:
-                        for i in range(len(obj.coordinates)):
-                            x1, y1 = obj.coordinates[i]
-                            x2, y2 = obj.coordinates[(i + 1) % len(obj.coordinates)]
-                            vx1, vy1 = self.transform_coords(x1, y1)
-                            vx2, vy2 = self.transform_coords(x2, y2)
-                            painter.drawLine(int(vx1), int(vy1), int(vx2), int(vy2))
-            except OverflowError as e:
-                self.console.log(f"{obj.name} was not added, OverflowError occurred.")
+                        self.polygon_clipping(painter, obj)
+            except OverflowError:
+                self.console.log(f"{obj.name} was not added due to an overflow error.")
 
     def export_objects(self):
         self.descritor.objs = self.objects.copy()
@@ -208,31 +218,46 @@ class Canvas(QWidget):
         for new_object in new_objects:
             self.add_object(new_object)
 
-    def point_clipping(self, painter, vx, vy):
-        if self.viewport_xmin <= vx <= self.viewport_xmax and self.viewport_ymin <= vy <= self.viewport_ymax:
+    def point_clipping(self, painter: QPainter, vx: float, vy: float):
+        """
+        Draws a point if it is within the viewport.
+        """
+        if (
+                self.viewport_xmin <= vx <= self.viewport_xmax
+                and self.viewport_ymin <= vy <= self.viewport_ymax
+        ):
             painter.drawEllipse(int(vx) - 3, int(vy) - 3, 6, 6)
 
-    def line_clipping(self, painter, vx1, vy1, vx2, vy2):
+    def line_clipping(self, vx1: float, vy1: float, vx2: float, vy2: float):
+        """
+        Applies the selected line clipping algorithm to the line defined by (vx1, vy1) and (vx2, vy2).
+        """
         if self.line_clipping_algorithm == "Cohen-Sutherland":
-            self.cohen_sutherland(painter, vx1, vy1, vx2, vy2)
+            return self.cohen_sutherland(vx1, vy1, vx2, vy2)
         elif self.line_clipping_algorithm == "Liang-Barsky":
-            self.liang_barsky(painter, vx1, vy1, vx2, vy2)
+            return self.liang_barsky(vx1, vy1, vx2, vy2)
+        return None
 
-    def set_line_clipping_algorithm(self, line_clipping_algorithm):
+    def set_line_clipping_algorithm(self, line_clipping_algorithm: str):
+        """
+        Set the line clipping algorithm to be used.
+        """
         self.line_clipping_algorithm = line_clipping_algorithm
         self.update()
 
-    def cohen_sutherland(self, painter, vx1, vy1, vx2, vy2):
+    def cohen_sutherland(self, vx1: float, vy1: float, vx2: float, vy2: float):
+        """
+        Cohen-Sutherland line clipping algorithm.
+        """
         cs_value_p1 = self.cohen_sutherland_point(vx1, vy1)
         cs_value_p2 = self.cohen_sutherland_point(vx2, vy2)
         x1, y1 = vx1, vy1
         x2, y2 = vx2, vy2
         while True:
             if cs_value_p1 & cs_value_p2:
-                return
+                return None
             elif not (cs_value_p1 | cs_value_p2):
-                painter.drawLine(int(x1), int(y1), int(x2), int(y2))
-                return
+                return x1, y1, x2, y2
             else:
                 m = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else None
                 if cs_value_p1 != 0:
@@ -242,7 +267,10 @@ class Canvas(QWidget):
                     x2, y2 = self.cohen_sutherland_redraw(cs_value_p2, x2, y2, m)
                     cs_value_p2 = self.cohen_sutherland_point(x2, y2)
 
-    def cohen_sutherland_point(self, vx, vy):
+    def cohen_sutherland_point(self, vx: float, vy: float) -> int:
+        """
+        Applies the classification of the point in the viewport acording to the Cohen-Sutherland algorithm.
+        """
         cs_value = 0
 
         if vx < self.viewport_xmin:
@@ -257,7 +285,12 @@ class Canvas(QWidget):
 
         return cs_value
 
-    def cohen_sutherland_redraw(self, cs_value, vx, vy, m):
+    def cohen_sutherland_redraw(
+            self, cs_value: int, vx: float, vy: float, m: float | None
+    ):
+        """
+        Redraws the point according to the Cohen-Sutherland algorithm.
+        """
         x, y = vx, vy
         if cs_value & 1:  # 0001/left
             y = m * (self.viewport_xmin - vx) + vy if m else vy
@@ -274,20 +307,28 @@ class Canvas(QWidget):
 
         return x, y
 
-    def liang_barsky(self, painter, vx1, vy1, vx2, vy2):
+    def liang_barsky(self, vx1: float, vy1: float, vx2: float, vy2: float):
+        """
+        Liang-Barsky line clipping algorithm.
+        """
         delta_x = vx2 - vx1
         delta_y = vy2 - vy1
 
         p = [-delta_x, delta_x, -delta_y, delta_y]
 
-        q = [vx1 - self.viewport_xmin, self.viewport_xmax - vx1, vy1 - self.viewport_ymin, self.viewport_ymax - vy1]
+        q = [
+            vx1 - self.viewport_xmin,
+            self.viewport_xmax - vx1,
+            vy1 - self.viewport_ymin,
+            self.viewport_ymax - vy1,
+        ]
 
         zeta1 = 0
         zeta2 = 1
         for i in range(4):
-            if p[i] == 0:  # paralela a um dos limites
-                if q[i] < 0:  # fora dos limites
-                    return
+            if p[i] == 0:  # parallel to a limit
+                if q[i] < 0:  # outside the limits
+                    return None
             else:
                 r = q[i] / p[i]
                 if p[i] < 0:  # outside --> in
@@ -299,7 +340,7 @@ class Canvas(QWidget):
         x2, y2 = vx2, vy2
 
         if zeta1 > zeta2:
-            return
+            return None
         if zeta1 != 0:
             x1 = vx1 + zeta1 * delta_x
             y1 = vy1 + zeta1 * delta_y
@@ -307,7 +348,84 @@ class Canvas(QWidget):
             x2 = vx1 + zeta2 * delta_x
             y2 = vy1 + zeta2 * delta_y
 
-        painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+        return x1, y1, x2, y2
 
-    def poligon_clipping(self, painter, obj):  # weiler-atherton
-        pass
+    def polygon_clipping(self, painter: QPainter, obj: Wireframe):
+        """
+        Currently only Sutherland-Hodgman algorithm is implemented, however, the algoritm is open to expansion using other clipping algorithms.
+        """
+        self.sutherland_hodgman(painter, obj)
+
+    def sutherland_hodgman(self, painter: QPainter, obj: Wireframe):
+        """
+        Sutherland-Hodgman polygon clipping algorithm.
+        """
+        points = [self.transform_coords(x, y) for x, y in obj.coordinates]
+
+        edges = ["LEFT", "RIGHT", "BOTTOM", "TOP"]
+
+        clipped_points = points
+
+        for edge in edges:
+            input_list = clipped_points
+            clipped_points = []
+            for i in range(len(input_list)):
+                current_point = input_list[i]
+                next_point = input_list[(i + 1) % len(input_list)]
+
+                x1, y1 = current_point
+                x2, y2 = next_point
+                if self.sutherland_hogdman_inside(x1, y1, edge):
+                    clipped_points.append((x1, y1))
+                    if not self.sutherland_hogdman_inside(x2, y2, edge):
+                        clipped_points.append(
+                            self.sutherland_hodgman_redraw(x1, y1, x2, y2, edge)
+                        )
+                elif self.sutherland_hogdman_inside(x2, y2, edge):
+                    clipped_points.append(
+                        self.sutherland_hodgman_redraw(x1, y1, x2, y2, edge)
+                    )
+
+        if len(clipped_points) >= 2:
+            for i in range(len(clipped_points)):
+                x1, y1 = clipped_points[i]
+                x2, y2 = clipped_points[(i + 1) % len(clipped_points)]
+                painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+
+    def sutherland_hogdman_inside(self, x: float, y: float, edge: str) -> bool:
+        """
+        Check if the point is inside the edge.
+        """
+        if edge == "LEFT":
+            return x >= self.viewport_xmin
+        elif edge == "RIGHT":
+            return x <= self.viewport_xmax
+        elif edge == "BOTTOM":
+            return y <= self.viewport_ymax
+        elif edge == "TOP":
+            return y >= self.viewport_ymin
+        else:
+            return False
+
+    def sutherland_hodgman_redraw(
+            self, x1: float, y1: float, x2: float, y2: float, edge: int
+    ):
+        """
+        Redraw the point according to the Sutherland-Hodgman algorithm.
+        """
+        vx = x2 - x1
+        vy = y2 - y1
+        x, y = 0, 0
+        if edge == "LEFT":
+            x = self.viewport_xmin
+            y = y1 + vy * (self.viewport_xmin - x1) / vx if vx != 0 else y1
+        elif edge == "RIGHT":
+            x = self.viewport_xmax
+            y = y1 + vy * (self.viewport_xmax - x1) / vx if vx != 0 else y1
+        elif edge == "BOTTOM":
+            y = self.viewport_ymax
+            x = x1 + vx * (self.viewport_ymax - y1) / vy if vy != 0 else x1
+        elif edge == "TOP":
+            y = self.viewport_ymin
+            x = x1 + vx * (self.viewport_ymin - y1) / vy if vy != 0 else x1
+        return x, y

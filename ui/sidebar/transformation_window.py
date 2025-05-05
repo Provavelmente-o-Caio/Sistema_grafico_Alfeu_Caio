@@ -112,8 +112,17 @@ class TransformationWindow(QWidget):
         except ValueError:
             self.console.log("Error: Invalid values for translation.")
             return
-        self.canvas.translate_objects(dx, dy)
-        self.console.log(f"Translated objects by ({dx}, {dy}).")
+        selected_items = self.obj_list.selectedItems()
+        for item in selected_items:
+            name = item.text()
+            for obj in self.canvas.objects:
+                if obj.name == name:
+                    self.canvas.translate_objects(obj, dx, dy)
+                    break
+
+        self.console.log(
+            f"Translated {len(selected_items)} object(s) by ({dx}, {dy})."
+        )
 
     def apply_transformation(self):
         try:
@@ -122,8 +131,17 @@ class TransformationWindow(QWidget):
         except ValueError:
             self.console.log("Error: Invalid values for transformation.")
             return
-        self.canvas.transform_objects(dx, dy)
-        self.console.log(f"Transformed objects by ({dx}, {dy}).")
+        selected_items = self.obj_list.selectedItems()
+        for item in selected_items:
+            name = item.text()
+            for obj in self.canvas.objects:
+                if obj.name == name:
+                    self.canvas.transform_objects(obj, dx, dy)
+                    break
+
+        self.console.log(
+            f"Transformed {len(selected_items)} object(s) by ({dx}, {dy})."
+        )
 
     def apply_rotation(self):
         try:
@@ -131,8 +149,17 @@ class TransformationWindow(QWidget):
         except ValueError:
             self.console.log("Error: Invalid angle for rotation.")
             return
-        self.canvas.rotate_objects(angle)
-        self.console.log(f"Rotated objects by {angle} degrees.")
+        selected_items = self.obj_list.selectedItems()
+        for item in selected_items:
+            name = item.text()
+            for obj in self.canvas.objects:
+                if obj.name == name:
+                    self.canvas.rotate_objects(obj, angle)
+                    break
+
+        self.console.log(
+            f"Rotated {len(selected_items)} object(s) by {angle} degrees."
+        )
 
     def apply_rotation_in_center(self):
         try:

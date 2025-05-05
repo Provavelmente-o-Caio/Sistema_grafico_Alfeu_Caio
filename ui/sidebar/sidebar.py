@@ -1,5 +1,5 @@
 from PyQt6.QtGui import QColor, QPalette
-from PyQt6.QtWidgets import QFileDialog, QRadioButton
+from PyQt6.QtWidgets import QFileDialog, QRadioButton, QAbstractItemView
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -113,6 +113,7 @@ class SideBar(QWidget):
 
         # Object list
         self.obj_list = QListWidget()
+        self.obj_list.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
         for obj in self.canvas.objects:
             item = QListWidgetItem(obj.name)
             self.obj_list.addItem(item)
