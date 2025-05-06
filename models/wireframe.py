@@ -8,12 +8,16 @@ from utils.types import ObjectType
 
 
 class Wireframe:
-    def __init__(self, name: str, obj_type: ObjectType, coordinates: List[Tuple[float, float]]):
+    def __init__(self, name: str, obj_type: ObjectType, coordinates: List[Tuple[float, float]], fill: bool = False):
         self.name = name
         self.obj_type = obj_type
         self.coordinates = coordinates
         self.color = QColor("black")
         self.is_selected = False
+        self.fill = fill
+
+    def set_fill(self, fill: bool):
+        self.fill = fill
 
     def set_color(self, color: QColor):
         self.color = color

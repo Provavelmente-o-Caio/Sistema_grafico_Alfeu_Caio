@@ -1,5 +1,5 @@
 from PyQt6.QtGui import QColor, QPalette
-from PyQt6.QtWidgets import QFileDialog, QRadioButton, QAbstractItemView
+from PyQt6.QtWidgets import QCheckBox, QFileDialog, QRadioButton, QAbstractItemView
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -97,6 +97,10 @@ class SideBar(QWidget):
         self.select_color_btn = QPushButton("Choose Color")
         self.select_color_btn.clicked.connect(self.choose_color)
         color_layout.addWidget(self.select_color_btn)
+
+        # Fill checkbox
+        self.fill_checkbox = QCheckBox()
+        color_layout.addWidget(self.fill_checkbox)
 
         creation_layout.addLayout(color_layout)
 
@@ -239,6 +243,7 @@ class SideBar(QWidget):
 
         new_obj = Wireframe(name, obj_type, coords)
         new_obj.set_color(self.selected_color)  # Apply selected color
+        new_obj.set_fill(self.fill_checkbox.isChecked())  # Apply fill option
         try:
             if any(new_obj.name == obj.name for obj in self.canvas.objects):
                 raise ValueError
@@ -324,7 +329,7 @@ class SideBar(QWidget):
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
             if selected_file.endswith(".obj"):
-                self.canvas.import_objects(selected_file)
+                self.canvas.import_objects(selected_file, self.fill_checkbox.isChecked())
                 self.console.log(f"Imported objects from {selected_file}")
                 self.update_object_list()
             else:

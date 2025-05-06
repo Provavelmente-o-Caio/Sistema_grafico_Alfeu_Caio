@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy as np
+from PyQt6.QtCore import QPointF, Qt
 from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
 from PyQt6.QtWidgets import QWidget
 
@@ -66,13 +67,13 @@ class Canvas(QWidget):
         self.add_object(line)
 
         triangle = Wireframe(
-            "Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)]
+            "Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)], fill = True
         )
         triangle.set_color(QColor("blue"))
         self.add_object(triangle)
 
         square = Wireframe(
-            "Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)]
+            "Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)], fill = False
         )
         square.set_color(QColor("yellow"))
         self.add_object(square)
@@ -213,8 +214,8 @@ class Canvas(QWidget):
         self.descritor.objs = self.objects.copy()
         self.descritor.export_file()
 
-    def import_objects(self, path):
-        new_objects = self.descritor.import_file(path)
+    def import_objects(self, path, fill:bool=False):
+        new_objects = self.descritor.import_file(path, fill)
         for new_object in new_objects:
             self.add_object(new_object)
 
@@ -386,11 +387,13 @@ class Canvas(QWidget):
                         self.sutherland_hodgman_redraw(x1, y1, x2, y2, edge)
                     )
 
-        if len(clipped_points) >= 2:
-            for i in range(len(clipped_points)):
-                x1, y1 = clipped_points[i]
-                x2, y2 = clipped_points[(i + 1) % len(clipped_points)]
-                painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+        if len(clipped_points) >= 3:
+            # Preencher o polígono
+            qpoints = [QPointF(x, y) for x, y in clipped_points]
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            if obj.fill:
+                painter.setBrush(obj.color)  # Fills the polygon with the object color
+            painter.drawPolygon(*qpoints)
 
     def sutherland_hogdman_inside(self, x: float, y: float, edge: str) -> bool:
         """

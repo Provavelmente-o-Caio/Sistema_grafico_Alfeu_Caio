@@ -45,7 +45,7 @@ class DescritorOBJ():
             f.write(f"Kd {color.redF():.6f} {color.greenF():.6f} {color.blueF():.6f}\n")
             f.write("\n")
 
-    def import_file(self, path):
+    def import_file(self, path, fill:bool = False):
         self.objs = []
         f = open(path, "r")
         lines = f.readlines()
@@ -74,11 +74,11 @@ class DescritorOBJ():
             elif line.startswith("usemtl "):
                 color = line.split()[1]
 
-        self.create_object(name, type, coordinates, color)
+        self.create_object(name, type, coordinates, color, fill)
 
         return self.objs
 
-    def create_object(self, name, type, coordinates, color):
+    def create_object(self, name, type, coordinates, color, fill:bool = False):
         if coordinates and type:
             obj = None
             if type == "DOT":
@@ -86,7 +86,7 @@ class DescritorOBJ():
             elif type == "LINE":
                 obj = Wireframe(name, ObjectType.LINE, coordinates)
             elif type == "POLYGON":
-                obj = Wireframe(name, ObjectType.POLYGON, coordinates)
+                obj = Wireframe(name, ObjectType.POLYGON, coordinates, fill)
             if color != "":
                 obj.set_color(QColor(color))
             else:
