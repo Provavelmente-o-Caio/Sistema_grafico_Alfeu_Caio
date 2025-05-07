@@ -177,8 +177,12 @@ class SideBar(QWidget):
         self.line_clipping_algorithm_cs.setChecked(True)
         self.line_clipping_algorithm_lb = QRadioButton("Liang-Barsky")
         self.line_clipping_algorithm_lb.setChecked(False)
-        self.line_clipping_algorithm_cs.toggled.connect(self.set_line_clipping_algorithm)
-        self.line_clipping_algorithm_lb.toggled.connect(self.set_line_clipping_algorithm)
+        self.line_clipping_algorithm_cs.toggled.connect(
+            self.set_line_clipping_algorithm
+        )
+        self.line_clipping_algorithm_lb.toggled.connect(
+            self.set_line_clipping_algorithm
+        )
         self.clipping_layout.addWidget(self.clipping_label)
         self.clipping_layout.addWidget(self.line_clipping_algorithm_cs)
         self.clipping_layout.addWidget(self.line_clipping_algorithm_lb)
@@ -224,23 +228,34 @@ class SideBar(QWidget):
         type_str = self.obj_type_combo.currentText()
         if type_str == "Dot":
             obj_type = ObjectType.DOT
-            if all(isinstance(point, float) for point in coords) and len(coords) != 2:
-                self.console.log("Error: A dot requires exactly 1 coordinate pair.")
+            if (
+                len(coords) != 2
+                or not isinstance(coords[0], int)
+                or not isinstance(coords[1], int)
+            ):
+                self.console.log(
+                    "Error: A dot requires exactly 1 coordinate pair."
+                )
                 return
-            coords = [coords]
-        elif type_str == "Line":
+        if type_str == "Line":
             obj_type = ObjectType.LINE
-            if len(coords) != 2:
+            if len(coords) != 2 or any(
+                not isinstance(point, tuple) or len(point) != 2 for point in coords
+            ):
                 self.console.log("Error: A line requires exactly 2 coordinate pairs.")
                 return
-        elif type_str == "Polygon":
+        if type_str == "Polygon":
             obj_type = ObjectType.POLYGON
-            if len(coords) < 3:
+            if len(coords) < 3 or any(
+                not isinstance(point, tuple) or len(point) != 2 for point in coords
+            ):
                 self.console.log(
                     "Error: A polygon requires at least 3 coordinate pairs."
                 )
                 return
 
+        if obj_type == ObjectType.DOT:
+            coords = [coords]
         new_obj = Wireframe(name, obj_type, coords)
         new_obj.set_color(self.selected_color)  # Apply selected color
         new_obj.set_fill(self.fill_checkbox.isChecked())  # Apply fill option
@@ -251,7 +266,7 @@ class SideBar(QWidget):
             self.canvas.add_object(new_obj)
             self.console.log(f"Added {type_str.lower()}: {name}")
             self.obj_list.addItem(QListWidgetItem(name))
-        except ValueError as e:
+        except ValueError:
             self.console.log(f"Error adding object, object {name} already exists")
 
         # Clear inputs
@@ -321,7 +336,6 @@ class SideBar(QWidget):
             self.console.log("No objects to be exported.")
 
     def import_objects(self):
-
         file_dialog = QFileDialog(self)
         file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
         file_dialog.setNameFilter("Wavefront Files (*.obj);;All Files (*)")
@@ -329,7 +343,9 @@ class SideBar(QWidget):
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
             if selected_file.endswith(".obj"):
-                self.canvas.import_objects(selected_file, self.fill_checkbox.isChecked())
+                self.canvas.import_objects(
+                    selected_file, self.fill_checkbox.isChecked()
+                )
                 self.console.log(f"Imported objects from {selected_file}")
                 self.update_object_list()
             else:
@@ -338,5 +354,7 @@ class SideBar(QWidget):
     def set_line_clipping_algorithm(self, checked):
         line_clipping_algorithm = self.sender()
         if checked:
-            self.console.log(f"Setting line clipping algorithm to {line_clipping_algorithm.text()}")
+            self.console.log(
+                f"Setting line clipping algorithm to {line_clipping_algorithm.text()}"
+            )
             self.canvas.set_line_clipping_algorithm(line_clipping_algorithm.text())

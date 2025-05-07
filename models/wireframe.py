@@ -8,7 +8,7 @@ from utils.types import ObjectType
 
 
 class Wireframe:
-    def __init__(self, name: str, obj_type: ObjectType, coordinates: List[Tuple[float, float]], fill: bool = False):
+    def __init__(self, name: str, obj_type: ObjectType, coordinates: list[tuple[int, int]], fill: bool = False):
         self.name = name
         self.obj_type = obj_type
         self.coordinates = coordinates

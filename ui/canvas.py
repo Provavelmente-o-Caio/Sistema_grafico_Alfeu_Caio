@@ -188,13 +188,11 @@ class Canvas(QWidget):
                 painter.setPen(pen)
 
                 if obj.obj_type == ObjectType.DOT:
-                    if len(obj.coordinates) > 0:
-                        x, y = obj.coordinates[0]
-                        vx, vy = self.transform_coords(x, y)
-                        self.point_clipping(painter, vx, vy)
-
+                    (x, y) = obj.coordinates[0]
+                    vx, vy = self.transform_coords(x, y)
+                    self.point_clipping(painter, vx, vy)
                 elif obj.obj_type == ObjectType.LINE:
-                    if len(obj.coordinates) >= 2:
+                    if len(obj.coordinates) == 2:
                         x1, y1 = obj.coordinates[0]
                         x2, y2 = obj.coordinates[1]
                         vx1, vy1 = self.transform_coords(x1, y1)
