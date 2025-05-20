@@ -1,0 +1,444 @@
+newmtl aliceblue
+Kd 0.941176 0.972549 1.000000
+
+newmtl antiquewhite
+Kd 0.980392 0.921569 0.843137
+
+newmtl aqua
+Kd 0.000000 1.000000 1.000000
+
+newmtl aquamarine
+Kd 0.498039 1.000000 0.831373
+
+newmtl azure
+Kd 0.941176 1.000000 1.000000
+
+newmtl beige
+Kd 0.960784 0.960784 0.862745
+
+newmtl bisque
+Kd 1.000000 0.894118 0.768627
+
+newmtl black
+Kd 0.000000 0.000000 0.000000
+
+newmtl blanchedalmond
+Kd 1.000000 0.921569 0.803922
+
+newmtl blue
+Kd 0.000000 0.000000 1.000000
+
+newmtl blueviolet
+Kd 0.541176 0.168627 0.886275
+
+newmtl brown
+Kd 0.647059 0.164706 0.164706
+
+newmtl burlywood
+Kd 0.870588 0.721569 0.529412
+
+newmtl cadetblue
+Kd 0.372549 0.619608 0.627451
+
+newmtl chartreuse
+Kd 0.498039 1.000000 0.000000
+
+newmtl chocolate
+Kd 0.823529 0.411765 0.117647
+
+newmtl coral
+Kd 1.000000 0.498039 0.313726
+
+newmtl cornflowerblue
+Kd 0.392157 0.584314 0.929412
+
+newmtl cornsilk
+Kd 1.000000 0.972549 0.862745
+
+newmtl crimson
+Kd 0.862745 0.078431 0.235294
+
+newmtl cyan
+Kd 0.000000 1.000000 1.000000
+
+newmtl darkblue
+Kd 0.000000 0.000000 0.545098
+
+newmtl darkcyan
+Kd 0.000000 0.545098 0.545098
+
+newmtl darkgoldenrod
+Kd 0.721569 0.525490 0.043137
+
+newmtl darkgray
+Kd 0.662745 0.662745 0.662745
+
+newmtl darkgreen
+Kd 0.000000 0.392157 0.000000
+
+newmtl darkgrey
+Kd 0.662745 0.662745 0.662745
+
+newmtl darkkhaki
+Kd 0.741176 0.717647 0.419608
+
+newmtl darkmagenta
+Kd 0.545098 0.000000 0.545098
+
+newmtl darkolivegreen
+Kd 0.333333 0.419608 0.184314
+
+newmtl darkorange
+Kd 1.000000 0.549020 0.000000
+
+newmtl darkorchid
+Kd 0.600000 0.196078 0.800000
+
+newmtl darkred
+Kd 0.545098 0.000000 0.000000
+
+newmtl darksalmon
+Kd 0.913725 0.588235 0.478431
+
+newmtl darkseagreen
+Kd 0.560784 0.737255 0.560784
+
+newmtl darkslateblue
+Kd 0.282353 0.239216 0.545098
+
+newmtl darkslategray
+Kd 0.184314 0.309804 0.309804
+
+newmtl darkslategrey
+Kd 0.184314 0.309804 0.309804
+
+newmtl darkturquoise
+Kd 0.000000 0.807843 0.819608
+
+newmtl darkviolet
+Kd 0.580392 0.000000 0.827451
+
+newmtl deeppink
+Kd 1.000000 0.078431 0.576471
+
+newmtl deepskyblue
+Kd 0.000000 0.749020 1.000000
+
+newmtl dimgray
+Kd 0.411765 0.411765 0.411765
+
+newmtl dimgrey
+Kd 0.411765 0.411765 0.411765
+
+newmtl dodgerblue
+Kd 0.117647 0.564706 1.000000
+
+newmtl firebrick
+Kd 0.698039 0.133333 0.133333
+
+newmtl floralwhite
+Kd 1.000000 0.980392 0.941176
+
+newmtl forestgreen
+Kd 0.133333 0.545098 0.133333
+
+newmtl fuchsia
+Kd 1.000000 0.000000 1.000000
+
+newmtl gainsboro
+Kd 0.862745 0.862745 0.862745
+
+newmtl ghostwhite
+Kd 0.972549 0.972549 1.000000
+
+newmtl gold
+Kd 1.000000 0.843137 0.000000
+
+newmtl goldenrod
+Kd 0.854902 0.647059 0.125490
+
+newmtl gray
+Kd 0.501961 0.501961 0.501961
+
+newmtl green
+Kd 0.000000 0.501961 0.000000
+
+newmtl greenyellow
+Kd 0.678431 1.000000 0.184314
+
+newmtl grey
+Kd 0.501961 0.501961 0.501961
+
+newmtl honeydew
+Kd 0.941176 1.000000 0.941176
+
+newmtl hotpink
+Kd 1.000000 0.411765 0.705882
+
+newmtl indianred
+Kd 0.803922 0.360784 0.360784
+
+newmtl indigo
+Kd 0.294118 0.000000 0.509804
+
+newmtl ivory
+Kd 1.000000 1.000000 0.941176
+
+newmtl khaki
+Kd 0.941176 0.901961 0.549020
+
+newmtl lavender
+Kd 0.901961 0.901961 0.980392
+
+newmtl lavenderblush
+Kd 1.000000 0.941176 0.960784
+
+newmtl lawngreen
+Kd 0.486275 0.988235 0.000000
+
+newmtl lemonchiffon
+Kd 1.000000 0.980392 0.803922
+
+newmtl lightblue
+Kd 0.678431 0.847059 0.901961
+
+newmtl lightcoral
+Kd 0.941176 0.501961 0.501961
+
+newmtl lightcyan
+Kd 0.878431 1.000000 1.000000
+
+newmtl lightgoldenrodyellow
+Kd 0.980392 0.980392 0.823529
+
+newmtl lightgray
+Kd 0.827451 0.827451 0.827451
+
+newmtl lightgreen
+Kd 0.564706 0.933333 0.564706
+
+newmtl lightgrey
+Kd 0.827451 0.827451 0.827451
+
+newmtl lightpink
+Kd 1.000000 0.713726 0.756863
+
+newmtl lightsalmon
+Kd 1.000000 0.627451 0.478431
+
+newmtl lightseagreen
+Kd 0.125490 0.698039 0.666667
+
+newmtl lightskyblue
+Kd 0.529412 0.807843 0.980392
+
+newmtl lightslategray
+Kd 0.466667 0.533333 0.600000
+
+newmtl lightslategrey
+Kd 0.466667 0.533333 0.600000
+
+newmtl lightsteelblue
+Kd 0.690196 0.768627 0.870588
+
+newmtl lightyellow
+Kd 1.000000 1.000000 0.878431
+
+newmtl lime
+Kd 0.000000 1.000000 0.000000
+
+newmtl limegreen
+Kd 0.196078 0.803922 0.196078
+
+newmtl linen
+Kd 0.980392 0.941176 0.901961
+
+newmtl magenta
+Kd 1.000000 0.000000 1.000000
+
+newmtl maroon
+Kd 0.501961 0.000000 0.000000
+
+newmtl mediumaquamarine
+Kd 0.400000 0.803922 0.666667
+
+newmtl mediumblue
+Kd 0.000000 0.000000 0.803922
+
+newmtl mediumorchid
+Kd 0.729412 0.333333 0.827451
+
+newmtl mediumpurple
+Kd 0.576471 0.439216 0.858824
+
+newmtl mediumseagreen
+Kd 0.235294 0.701961 0.443137
+
+newmtl mediumslateblue
+Kd 0.482353 0.407843 0.933333
+
+newmtl mediumspringgreen
+Kd 0.000000 0.980392 0.603922
+
+newmtl mediumturquoise
+Kd 0.282353 0.819608 0.800000
+
+newmtl mediumvioletred
+Kd 0.780392 0.082353 0.521569
+
+newmtl midnightblue
+Kd 0.098039 0.098039 0.439216
+
+newmtl mintcream
+Kd 0.960784 1.000000 0.980392
+
+newmtl mistyrose
+Kd 1.000000 0.894118 0.882353
+
+newmtl moccasin
+Kd 1.000000 0.894118 0.709804
+
+newmtl navajowhite
+Kd 1.000000 0.870588 0.678431
+
+newmtl navy
+Kd 0.000000 0.000000 0.501961
+
+newmtl oldlace
+Kd 0.992157 0.960784 0.901961
+
+newmtl olive
+Kd 0.501961 0.501961 0.000000
+
+newmtl olivedrab
+Kd 0.419608 0.556863 0.137255
+
+newmtl orange
+Kd 1.000000 0.647059 0.000000
+
+newmtl orangered
+Kd 1.000000 0.270588 0.000000
+
+newmtl orchid
+Kd 0.854902 0.439216 0.839216
+
+newmtl palegoldenrod
+Kd 0.933333 0.909804 0.666667
+
+newmtl palegreen
+Kd 0.596078 0.984314 0.596078
+
+newmtl paleturquoise
+Kd 0.686275 0.933333 0.933333
+
+newmtl palevioletred
+Kd 0.858824 0.439216 0.576471
+
+newmtl papayawhip
+Kd 1.000000 0.937255 0.835294
+
+newmtl peachpuff
+Kd 1.000000 0.854902 0.725490
+
+newmtl peru
+Kd 0.803922 0.521569 0.247059
+
+newmtl pink
+Kd 1.000000 0.752941 0.796078
+
+newmtl plum
+Kd 0.866667 0.627451 0.866667
+
+newmtl powderblue
+Kd 0.690196 0.878431 0.901961
+
+newmtl purple
+Kd 0.501961 0.000000 0.501961
+
+newmtl red
+Kd 1.000000 0.000000 0.000000
+
+newmtl rosybrown
+Kd 0.737255 0.560784 0.560784
+
+newmtl royalblue
+Kd 0.254902 0.411765 0.882353
+
+newmtl saddlebrown
+Kd 0.545098 0.270588 0.074510
+
+newmtl salmon
+Kd 0.980392 0.501961 0.447059
+
+newmtl sandybrown
+Kd 0.956863 0.643137 0.376471
+
+newmtl seagreen
+Kd 0.180392 0.545098 0.341176
+
+newmtl seashell
+Kd 1.000000 0.960784 0.933333
+
+newmtl sienna
+Kd 0.627451 0.321569 0.176471
+
+newmtl silver
+Kd 0.752941 0.752941 0.752941
+
+newmtl skyblue
+Kd 0.529412 0.807843 0.921569
+
+newmtl slateblue
+Kd 0.415686 0.352941 0.803922
+
+newmtl slategray
+Kd 0.439216 0.501961 0.564706
+
+newmtl slategrey
+Kd 0.439216 0.501961 0.564706
+
+newmtl snow
+Kd 1.000000 0.980392 0.980392
+
+newmtl springgreen
+Kd 0.000000 1.000000 0.498039
+
+newmtl steelblue
+Kd 0.274510 0.509804 0.705882
+
+newmtl tan
+Kd 0.823529 0.705882 0.549020
+
+newmtl teal
+Kd 0.000000 0.501961 0.501961
+
+newmtl thistle
+Kd 0.847059 0.749020 0.847059
+
+newmtl tomato
+Kd 1.000000 0.388235 0.278431
+
+newmtl transparent
+Kd 0.000000 0.000000 0.000000
+
+newmtl turquoise
+Kd 0.250980 0.878431 0.815686
+
+newmtl violet
+Kd 0.933333 0.509804 0.933333
+
+newmtl wheat
+Kd 0.960784 0.870588 0.701961
+
+newmtl white
+Kd 1.000000 1.000000 1.000000
+
+newmtl whitesmoke
+Kd 0.960784 0.960784 0.960784
+
+newmtl yellow
+Kd 1.000000 1.000000 0.000000
+
+newmtl yellowgreen
+Kd 0.603922 0.803922 0.196078
+

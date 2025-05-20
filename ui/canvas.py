@@ -30,7 +30,7 @@ class Canvas(QWidget):
 
         # Window and viewport setup
         self.window = Window()
-        self.border_width: int = 200
+        self.border_width: int = 50
         self.viewport_xmin: int = self.border_width
         self.viewport_ymin: int = self.border_width
         self.viewport_xmax: int = self.width() - self.border_width
@@ -67,13 +67,13 @@ class Canvas(QWidget):
         self.add_object(line)
 
         triangle = Wireframe(
-            "Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)], fill = True
+            "Triangle Example", ObjectType.POLYGON, [(0, 0), (5, 8), (-5, 8)], fill = False
         )
         triangle.set_color(QColor("blue"))
         self.add_object(triangle)
 
         square = Wireframe(
-            "Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)], fill = False
+            "Square Example", ObjectType.POLYGON, [(-5, -5), (5, -5), (5, 5), (-5, 5)], fill = True
         )
         square.set_color(QColor("yellow"))
         self.add_object(square)

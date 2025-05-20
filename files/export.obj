@@ -1,0 +1,29 @@
+#Sistema Gráfico Alfeu e Caio
+mtllib material.mtl
+
+o Dot_Example
+v 0.000000 0.000000 0.000000
+usemtl red
+p -1 
+
+o Line_Example
+v -5.000000 -5.000000 0.000000
+v 5.000000 5.000000 0.000000
+usemtl green
+l -2 -1 
+
+o Triangle_Example
+v 0.000000 0.000000 0.000000
+v 5.000000 8.000000 0.000000
+v -5.000000 8.000000 0.000000
+usemtl blue
+f -3 -2 -1 
+
+o Square_Example
+v -5.000000 -5.000000 0.000000
+v 5.000000 -5.000000 0.000000
+v 5.000000 5.000000 0.000000
+v -5.000000 5.000000 0.000000
+usemtl yellow
+f -4 -3 -2 -1 
+
