@@ -50,7 +50,7 @@ class Canvas(QWidget):
         """
         Add a new object to the canvas
         """
-        
+
         try:
             if any(wireframe.name == obj.name for obj in self.objects):
                 raise ValueError
@@ -90,8 +90,26 @@ class Canvas(QWidget):
         )
         square.set_color(QColor("yellow"))
         self.add_object(square)
-        
-        curve = Wireframe("Curve Example", ObjectType.CURVE, [(-4,0),(-2,6),(2,6),(4,0)])
+
+        curve = Wireframe(
+            "Continuous Curve",
+            ObjectType.CURVE,
+            [
+                (0, 0),
+                (2, 2),
+                (4, -2),
+                (6, 0),  # First Bézier segment: P0, P1, P2, P3
+                (6, 0),
+                (8, 2),
+                (10, -2),
+                (12, 0),  # Second Bézier segment: P3 == P4 ensures G0 continuity
+                (12, 0),
+                (14, 2),
+                (16, -2),
+                (18, 0),  # Third Bézier segment: P7 == P8 ensures G0 continuity
+            ],
+        )
+
         curve.set_color(QColor("orange"))
         self.add_object(curve)
 
@@ -248,25 +266,31 @@ class Canvas(QWidget):
                     if len(obj.coordinates) >= 3:
                         self.polygon_clipping(painter, obj)
                 elif obj.obj_type == ObjectType.CURVE:
-                    if len(obj.coordinates) == 4:
-                        x1, y1 = obj.coordinates[0]
-                        x2, y2 = obj.coordinates[1]
-                        x3, y3 = obj.coordinates[2]
-                        x4, y4 = obj.coordinates[3]
-                        vx1, vy1 = self.transform_coords(x1, y1)
-                        vx2, vy2 = self.transform_coords(x2, y2)
-                        vx3, vy3 = self.transform_coords(x3, y3)
-                        vx4, vy4 = self.transform_coords(x4, y4)
+                    if len(obj.coordinates) >= 4:
+                        points = [
+                            self.transform_coords(x, y) for x, y in obj.coordinates
+                        ]
 
-                        points = self.bezier(vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4)
-                        if len(points) >= 2:
-                            for i in range(len(points) - 1):
-                                x1, y1 = points[i]
-                                x2, y2 = points[i + 1]
-                                clipped_line = self.line_clipping(x1, y1, x2, y2)
-                                if clipped_line:
-                                    x1, y1, x2, y2 = clipped_line
-                                    painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+                        self.check_bezier_continuity(obj.coordinates)
+
+                        for i in range(0, len(points) - 4, 4):
+                            vx1, vy1 = points[i]
+                            vx2, vy2 = points[i + 1]
+                            vx3, vy3 = points[i + 2]
+                            vx4, vy4 = points[i + 3]
+                            segment = self.bezier(
+                                vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4
+                            )
+                            if len(segment) >= 2:
+                                for i in range(len(segment) - 1):
+                                    x1, y1 = segment[i]
+                                    x2, y2 = segment[i + 1]
+                                    clipped_line = self.line_clipping(x1, y1, x2, y2)
+                                    if clipped_line:
+                                        x1, y1, x2, y2 = clipped_line
+                                        painter.drawLine(
+                                            int(x1), int(y1), int(x2), int(y2)
+                                        )
 
             except OverflowError:
                 self.console.log(f"{obj.name} was not added due to an overflow error.")
@@ -513,3 +537,25 @@ class Canvas(QWidget):
             points.append((x, y))
 
         return points
+
+    def check_bezier_continuity(self, points: list) -> bool:
+        """
+        Checks if there is G(0) continuity in the curves
+        """
+        if len(points) < 7:  # At least two segments
+            return True
+
+        for i in range(0, len(points) - 4, 4):
+            if i + 4 >= len(points):
+                break
+
+            end_point = points[i + 3]
+            next_start = points[i + 4]
+
+            if end_point != next_start:
+                self.console.log(
+                    f"Found discontinuous points: {end_point}, {next_start}"
+                )
+                return False
+
+        return True
