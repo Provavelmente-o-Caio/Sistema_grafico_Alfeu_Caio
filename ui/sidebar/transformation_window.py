@@ -15,11 +15,11 @@ from ui.console import Console
 class TransformationWindow(QWidget):
     def __init__(self, canvas: Canvas, console: Console, obj_list):
         super().__init__()
-        self.canvas = canvas
-        self.console = console
+        self.canvas: Canvas = canvas
+        self.console: Console = console
         self.obj_list = obj_list
         self.layout = QVBoxLayout()
-        self.main_label = QLabel("Transformations")
+        self.main_label: QLabel = QLabel("Transformations")
         self.layout.addWidget(self.main_label)
         self.setLayout(self.layout)
 

@@ -9,38 +9,38 @@ from utils.types import ObjectType
 
 class Wireframe:
     def __init__(self, name: str, obj_type: ObjectType, coordinates: list[tuple[int, int]], fill: bool = False):
-        self.name = name
-        self.obj_type = obj_type
-        self.coordinates = coordinates
-        self.color = QColor("black")
-        self.is_selected = False
+        self.name: str = name
+        self.obj_type: ObjectType = obj_type
+        self.coordinates: list[tuple[int,int]] = coordinates
+        self.color: QColor = QColor("black")
+        self.is_selected: bool = False
+        self.fill: bool = fill
+
+    def set_fill(self, fill: bool) -> None:
         self.fill = fill
 
-    def set_fill(self, fill: bool):
-        self.fill = fill
-
-    def set_color(self, color: QColor):
+    def set_color(self, color: QColor) -> None:
         self.color = color
 
-    def select(self):
+    def select(self) -> None:
         self.is_selected = True
 
-    def deselect(self):
+    def deselect(self) -> None:
         self.is_selected = False
 
-    def translate(self, dx: float, dy: float):
+    def translate(self, dx: float, dy: float) -> None:
         T = create_translation_matrix(dx, dy)
         self.transformation(op=T)
 
-    def transform(self, sx: float, sy: float):
+    def transform(self, sx: float, sy: float) -> None:
         S = create_scale_matrix(sx, sy)
         self.transformation(op=S)
 
-    def rotate(self, angle: float):
+    def rotate(self, angle: float) -> None:
         R = create_rotation_matrix(angle)
         self.transformation(op=R)
 
-    def transformation(self, obj=None, op=None):
+    def transformation(self, obj=None, op=None) -> None:
         new_coords = []
         for x, y in self.coordinates:
             point = np.matrix([x, y, 1])
@@ -48,7 +48,7 @@ class Wireframe:
             new_coords.append((float(transformed_point[0, 0]), float(transformed_point[0, 1])))
         self.coordinates = new_coords
 
-    def getCenterObjectX(self):
+    def getCenterObjectX(self) -> float:
         if not self.coordinates:
             return 0
 
@@ -57,7 +57,7 @@ class Wireframe:
             sum_x += x
         return sum_x / len(self.coordinates)
 
-    def getCenterObjectY(self):
+    def getCenterObjectY(self) -> float:
         if not self.coordinates:
             return 0
 
@@ -66,14 +66,14 @@ class Wireframe:
             sum_y += y
         return sum_y / len(self.coordinates)
 
-    def export_coordinates(self):
+    def export_coordinates(self) -> list[tuple[int, int]]:
         return self.coordinates
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.name
 
-    def get_color(self):
+    def get_color(self) -> str :
         return self.color.name()
 
-    def get_obj_type(self):
+    def get_obj_type(self) -> ObjectType:
         return self.obj_type
