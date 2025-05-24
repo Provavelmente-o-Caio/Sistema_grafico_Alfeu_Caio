@@ -46,8 +46,11 @@ class Canvas(QWidget):
         # Setting the line clipping Algorithm
         self.line_clipping_algorithm = "Cohen-Sutherland"
 
-    # Adds a new object in the canvas
     def add_object(self, wireframe: Wireframe):
+        """
+        Add a new object to the canvas
+        """
+        
         try:
             if any(wireframe.name == obj.name for obj in self.objects):
                 raise ValueError
@@ -57,7 +60,6 @@ class Canvas(QWidget):
         except ValueError:
             self.console.log(f"Object {wireframe.name} already exists")
 
-    # Loads the preset objects
     def load_example_objects(self):
         """
         Preset objects to show this project funcionalities
@@ -75,7 +77,7 @@ class Canvas(QWidget):
             "Triangle Example",
             ObjectType.POLYGON,
             [(0, 0), (5, 8), (-5, 8)],
-            fill=False,
+            fill=True,
         )
         triangle.set_color(QColor("blue"))
         self.add_object(triangle)
@@ -84,10 +86,14 @@ class Canvas(QWidget):
             "Square Example",
             ObjectType.POLYGON,
             [(-5, -5), (5, -5), (5, 5), (-5, 5)],
-            fill=True,
+            fill=False,
         )
         square.set_color(QColor("yellow"))
         self.add_object(square)
+        
+        curve = Wireframe("Curve Example", ObjectType.CURVE, [(-4,0),(-2,6),(2,6),(4,0)])
+        curve.set_color(QColor("orange"))
+        self.add_object(curve)
 
     def remove_object(self, name: str):
         """
