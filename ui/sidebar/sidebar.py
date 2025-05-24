@@ -70,7 +70,7 @@ class SideBar(QWidget):
 
         # Object type selection
         self.obj_type_combo = QComboBox()
-        self.obj_type_combo.addItems(["Dot", "Line", "Polygon"])
+        self.obj_type_combo.addItems(["Dot", "Line", "Polygon", "Curve"])
         creation_layout.addWidget(QLabel("Object Type:"))
         creation_layout.addWidget(self.obj_type_combo)
 
@@ -226,6 +226,7 @@ class SideBar(QWidget):
             return
 
         type_str = self.obj_type_combo.currentText()
+        obj_type = None
         if type_str == "Dot":
             obj_type = ObjectType.DOT
             if (
@@ -253,27 +254,36 @@ class SideBar(QWidget):
                     "Error: A polygon requires at least 3 coordinate pairs."
                 )
                 return
+        if type_str == "Curve":
+            obj_type = ObjectType.CURVE
+            if len(coords) != 4:
+                self.console.log(
+                    "Error: A curve requires 4 coordinate pairs."
+                )
+                return
 
-        if obj_type == ObjectType.DOT:
-            coords = [coords]
-        new_obj = Wireframe(name, obj_type, coords)
-        new_obj.set_color(self.selected_color)  # Apply selected color
-        new_obj.set_fill(self.fill_checkbox.isChecked())  # Apply fill option
-        try:
-            if any(new_obj.name == obj.name for obj in self.canvas.objects):
-                raise ValueError
+        if obj_type:
+            if obj_type == ObjectType.DOT:
+                coords = [coords]
+            new_obj = Wireframe(name, obj_type, coords)
+            new_obj.set_color(self.selected_color)  # Apply selected color
+            new_obj.set_fill(self.fill_checkbox.isChecked())  # Apply fill option
+            try:
+                if any(new_obj.name == obj.name for obj in self.canvas.objects):
+                    raise ValueError
 
-            self.canvas.add_object(new_obj)
-            self.console.log(f"Added {type_str.lower()}: {name}")
-            self.obj_list.addItem(QListWidgetItem(name))
-        except ValueError:
-            self.console.log(f"Error adding object, object {name} already exists")
+                self.canvas.add_object(new_obj)
+                self.console.log(f"Added {type_str.lower()}: {name}")
+                self.obj_list.addItem(QListWidgetItem(name))
+            except ValueError:
+                self.console.log(f"Error adding object, object {name} already exists")
 
-        # Clear inputs
-        self.obj_name_input.clear()
-        self.coords_input.clear()
+            # Clear inputs
+            self.obj_name_input.clear()
+            self.coords_input.clear()
+        else:
+            self.console.log("Error: failed to give an object type to the object")
 
-    # Update object list
     def update_object_list(self):
         self.obj_list.clear()
         for obj in self.canvas.objects:
