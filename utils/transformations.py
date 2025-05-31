@@ -29,15 +29,26 @@ def create_coord_transform_matrix(cx, cy, angle, sx, sy):
 
 
 def create_bezier_matrix(p1, p2, p3, p4):
-    bezier = np.matrix([[-1,  3, -3, 1],
-                        [ 3, -6,  3, 0],
-                        [-3,  3,  0, 0],
-                        [ 1,  0,  0, 0]])
+    bezier = np.matrix([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 3, 0, 0], [1, 0, 0, 0]])
 
     px_matrix = np.matrix([[p1[0], p2[0], p3[0], p4[0]]])
     py_matrix = np.matrix([[p1[1], p2[1], p3[1], p4[1]]])
 
     px = bezier @ px_matrix.T
     py = bezier @ py_matrix.T
-    
+
+    return px, py
+
+
+def create_b_spline_matrix(p1, p2, p3, p4):
+    b_spline = (
+        np.matrix([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 0, 3, 0], [1, 4, 1, 0]]) / 6
+    )
+
+    px_matrix = np.matrix([[p1[0], p2[0], p3[0], p4[0]]])
+    py_matrix = np.matrix([[p1[1], p2[1], p3[1], p4[1]]])
+
+    px = b_spline @ px_matrix.T
+    py = b_spline @ py_matrix.T
+
     return px, py
