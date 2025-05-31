@@ -70,7 +70,9 @@ class SideBar(QWidget):
 
         # Object type selection
         self.obj_type_combo = QComboBox()
-        self.obj_type_combo.addItems(["Dot", "Line", "Polygon", "Curve"])
+        self.obj_type_combo.addItems(
+            ["Dot", "Line", "Polygon", "Curve (Bezier)", "Curve (B-Spline)"]
+        )
         creation_layout.addWidget(QLabel("Object Type:"))
         creation_layout.addWidget(self.obj_type_combo)
 
@@ -100,6 +102,7 @@ class SideBar(QWidget):
 
         # Fill checkbox
         self.fill_checkbox = QCheckBox()
+        self.fill_checkbox.toggled.connect(self.fill_checkbox_toggled)
         color_layout.addWidget(self.fill_checkbox)
 
         creation_layout.addLayout(color_layout)
@@ -168,10 +171,11 @@ class SideBar(QWidget):
         self.transformation_group.setLayout(self.transformation_layout)
         layout.addWidget(self.transformation_group)
 
-        # Clipping Algorithm
-        self.clipping_group = QGroupBox("Clipping")
-        self.clipping_layout = QVBoxLayout()
+        # Options
+        self.options_group = QGroupBox("Options")
+        self.options_layout = QVBoxLayout()
 
+        # Clipping algorithm selection
         self.clipping_label = QLabel("Clipping Algorithm")
         self.line_clipping_algorithm_cs = QRadioButton("Cohen-Sutherland")
         self.line_clipping_algorithm_cs.setChecked(True)
@@ -183,11 +187,19 @@ class SideBar(QWidget):
         self.line_clipping_algorithm_lb.toggled.connect(
             self.set_line_clipping_algorithm
         )
-        self.clipping_layout.addWidget(self.clipping_label)
-        self.clipping_layout.addWidget(self.line_clipping_algorithm_cs)
-        self.clipping_layout.addWidget(self.line_clipping_algorithm_lb)
-        self.clipping_group.setLayout(self.clipping_layout)
-        layout.addWidget(self.clipping_group)
+        self.options_layout.addWidget(self.clipping_label)
+        self.options_layout.addWidget(self.line_clipping_algorithm_cs)
+        self.options_layout.addWidget(self.line_clipping_algorithm_lb)
+
+        # See curve points
+        self.see_curve_points_label = QLabel("Curve Points")
+        self.see_curve_points_checkbox = QCheckBox("See Curve Points")
+        self.see_curve_points_checkbox.toggled.connect(self.see_curve_points_toggled)
+        self.options_layout.addWidget(self.see_curve_points_label)
+        self.options_layout.addWidget(self.see_curve_points_checkbox)
+
+        self.options_group.setLayout(self.options_layout)
+        layout.addWidget(self.options_group)
 
         # Connect signals to slots
         self.pan_up_btn.clicked.connect(lambda: self.canvas.pan(0, 1))
@@ -234,9 +246,7 @@ class SideBar(QWidget):
                 or not isinstance(coords[0], int)
                 or not isinstance(coords[1], int)
             ):
-                self.console.log(
-                    "Error: A dot requires exactly 1 coordinate pair."
-                )
+                self.console.log("Error: A dot requires exactly 1 coordinate pair.")
                 return
         if type_str == "Line":
             obj_type = ObjectType.LINE
@@ -257,9 +267,7 @@ class SideBar(QWidget):
         if type_str == "Curve":
             obj_type = ObjectType.CURVE
             if len(coords) != 4:
-                self.console.log(
-                    "Error: A curve requires 4 coordinate pairs."
-                )
+                self.console.log("Error: A curve requires 4 coordinate pairs.")
                 return
 
         if obj_type:
@@ -368,3 +376,18 @@ class SideBar(QWidget):
                 f"Setting line clipping algorithm to {line_clipping_algorithm.text()}"
             )
             self.canvas.set_line_clipping_algorithm(line_clipping_algorithm.text())
+
+    def fill_checkbox_toggled(self, checked):
+        if checked:
+            self.console.log("Fill color option enabled")
+        else:
+            self.console.log("Fill color option disabled")
+
+    def see_curve_points_toggled(self, checked):
+        self.canvas.show_control_points = checked
+        self.canvas.update()
+        if checked:
+            self.console.log("Showing curve control points")
+        else:
+            self.console.log("Hiding curve control points")
+        self.canvas.update()

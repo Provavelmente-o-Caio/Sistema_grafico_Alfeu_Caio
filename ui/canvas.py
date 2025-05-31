@@ -46,6 +46,9 @@ class Canvas(QWidget):
         # Setting the line clipping Algorithm
         self.line_clipping_algorithm = "Cohen-Sutherland"
 
+        # Show the curves control points
+        self.show_control_points = False
+
     def add_object(self, wireframe: Wireframe):
         """
         Add a new object to the canvas
@@ -273,7 +276,7 @@ class Canvas(QWidget):
 
                         self.check_bezier_continuity(obj.coordinates)
 
-                        for i in range(0, len(points) - 4, 4):
+                        for i in range(0, len(points) - 3, 4):
                             vx1, vy1 = points[i]
                             vx2, vy2 = points[i + 1]
                             vx3, vy3 = points[i + 2]
@@ -291,6 +294,11 @@ class Canvas(QWidget):
                                         painter.drawLine(
                                             int(x1), int(y1), int(x2), int(y2)
                                         )
+                        if self.show_control_points:
+                            for x, y in obj.coordinates:
+                                vx, vy = self.transform_coords(x, y)
+                                painter.setBrush(QColor("Magenta"))
+                                painter.drawEllipse(int(vx) - 3, int(vy) - 3, 6, 6)
 
             except OverflowError:
                 self.console.log(f"{obj.name} was not added due to an overflow error.")
