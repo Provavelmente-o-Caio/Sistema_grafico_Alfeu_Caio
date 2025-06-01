@@ -27,14 +27,17 @@ class DescritorOBJ():
                 f.write("p ")
             elif obj.get_obj_type().name == "POLYGON":
                 f.write("f ")
+            elif obj.get_obj_type().name == "CURVE":
+                f.write("c ")
+            elif obj.get_obj_type().name == "CURVE_BSPLINE":
+                f.write("b ")
             else:
                 f.write("l ")
             counter = len(coordinates)
             for c in coordinates:
                 f.write(f"-{counter} ")
                 counter -= 1
-            f.write("\n")
-            f.write("\n")
+            f.write("\n\n")
 
         f.close()
 
@@ -71,6 +74,10 @@ class DescritorOBJ():
                 type = "LINE"
             elif line.startswith("f "):
                 type = "POLYGON"
+            elif line.startswith("c "):
+                type = "CURVE"
+            elif line.startswith("b "):
+                type = "CURVE_BSPLINE"
             elif line.startswith("usemtl "):
                 color = line.split()[1]
 
@@ -87,6 +94,10 @@ class DescritorOBJ():
                 obj = Wireframe(name, ObjectType.LINE, coordinates)
             elif type == "POLYGON":
                 obj = Wireframe(name, ObjectType.POLYGON, coordinates, fill)
+            elif type == "CURVE":
+                obj = Wireframe(name, ObjectType.CURVE, coordinates, fill)
+            elif type == "CURVE_BSPLINE":
+                obj = Wireframe(name, ObjectType.CURVE_BSPLINE, coordinates, fill)
             if color != "":
                 obj.set_color(QColor(color))
             else:

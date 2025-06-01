@@ -1,5 +1,4 @@
-from typing import List
-
+from typing import Any
 import numpy as np
 from PyQt6.QtCore import QPointF, Qt
 from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
@@ -9,7 +8,7 @@ from models.window import Window
 from models.wireframe import Wireframe
 from utils.descritorOBJ import DescritorOBJ
 from utils.types import ObjectType
-from utils.transformations import create_bezier_matrix
+from utils.transformations import create_bezier_matrix, forward_differences_matrix, create_b_spline_matrix
 
 
 class Canvas(QWidget):
@@ -116,6 +115,20 @@ class Canvas(QWidget):
         curve.set_color(QColor("orange"))
         self.add_object(curve)
 
+        bspline = Wireframe(
+            "B-Spline Example",
+            ObjectType.CURVE_BSPLINE,
+            [
+                (-10, 0),
+                (-5, 10),
+                (0, -10),
+                (5, 10),
+                (10, 0),
+            ],
+        )
+        bspline.set_color(QColor("purple"))
+        self.add_object(bspline)
+
     def remove_object(self, name: str):
         """
         Removes the selected objects from the canvas
@@ -133,7 +146,7 @@ class Canvas(QWidget):
         self.update()
 
     def translate_objects(self, object: Wireframe, dx: float, dy: float):
-        """'
+        """
         This method is responsible for 2D translation.
         It basically is adding and/or subtracting coordinates to all objects
         """
@@ -146,6 +159,7 @@ class Canvas(QWidget):
         This method is responsible for 2D transformation.
         It basically is mutltiplication coordinates to an objects
         """
+
         object.transform(dx, dy)
         self.update()
 
@@ -211,11 +225,11 @@ class Canvas(QWidget):
         self.viewport_ymax = self.height() - self.border_width
         self.update()
 
-    # Pan the window
     def pan(self, dx, dy):
         """
         Pan the window by dx and dy.
         """
+
         self.window.pan(dx * self.step, dy * self.step)
         self.update()
 
@@ -267,38 +281,61 @@ class Canvas(QWidget):
 
                 elif obj.obj_type == ObjectType.POLYGON:
                     if len(obj.coordinates) >= 3:
+                        if obj.fill:
+                            painter.setBrush(obj.color)
+                        else:
+                            painter.setBrush(Qt.BrushStyle.NoBrush)
+                        painter.setPen(pen)
                         self.polygon_clipping(painter, obj)
                 elif obj.obj_type == ObjectType.CURVE:
                     if len(obj.coordinates) >= 4:
-                        points = [
-                            self.transform_coords(x, y) for x, y in obj.coordinates
-                        ]
 
                         self.check_bezier_continuity(obj.coordinates)
 
-                        for i in range(0, len(points) - 3, 4):
-                            vx1, vy1 = points[i]
-                            vx2, vy2 = points[i + 1]
-                            vx3, vy3 = points[i + 2]
-                            vx4, vy4 = points[i + 3]
-                            segment = self.bezier(
-                                vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4
-                            )
+                        for i in range(0, len(obj.coordinates) - 3, 4):
+                            x1, y1 = obj.coordinates[i]
+                            x2, y2 = obj.coordinates[i + 1]
+                            x3, y3 = obj.coordinates[i + 2]
+                            x4, y4 = obj.coordinates[i + 3]
+                            segment = self.bezier(x1, y1, x2, y2, x3, y3, x4, y4)
                             if len(segment) >= 2:
-                                for i in range(len(segment) - 1):
-                                    x1, y1 = segment[i]
-                                    x2, y2 = segment[i + 1]
-                                    clipped_line = self.line_clipping(x1, y1, x2, y2)
+                                for j in range(len(segment) - 1):
+                                    vx1, vy1 = self.transform_coords(segment[j][0], segment[j][1])
+                                    vx2, vy2 = self.transform_coords(segment[j + 1][0], segment[j + 1][1])
+                                    clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
                                     if clipped_line:
-                                        x1, y1, x2, y2 = clipped_line
+                                        vx1, vy1, vx2, vy2 = clipped_line
                                         painter.drawLine(
-                                            int(x1), int(y1), int(x2), int(y2)
+                                            int(vx1), int(vy1), int(vx2), int(vy2)
                                         )
                         if self.show_control_points:
                             for x, y in obj.coordinates:
                                 vx, vy = self.transform_coords(x, y)
                                 painter.setBrush(QColor("Magenta"))
-                                painter.drawEllipse(int(vx) - 3, int(vy) - 3, 6, 6)
+                                self.point_clipping(painter, vx, vy)
+                elif obj.obj_type == ObjectType.CURVE_BSPLINE:
+                    if len(obj.coordinates) >= 4:
+                        num_segments = len(obj.coordinates) - 3
+                        for i in range(num_segments):
+                            x1, y1 = obj.coordinates[i]
+                            x2, y2 = obj.coordinates[i + 1]
+                            x3, y3 = obj.coordinates[i + 2]
+                            x4, y4 = obj.coordinates[i + 3]
+                            segment = self.b_spline(x1, y1, x2, y2, x3, y3, x4, y4)
+                            for j in range(len(segment) - 1):
+                                vx1, vy1 = self.transform_coords(segment[j][0], segment[j][1])
+                                vx2, vy2 = self.transform_coords(segment[j + 1][0], segment[j + 1][1])
+                                clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
+                                if clipped_line:
+                                    vx1, vy1, vx2, vy2 = clipped_line
+                                    painter.drawLine(
+                                        int(vx1), int(vy1), int(vx2), int(vy2)
+                                    )
+                        if self.show_control_points:
+                            for x, y in obj.coordinates:
+                                vx, vy = self.transform_coords(x, y)
+                                painter.setBrush(QColor("Magenta"))
+                                self.point_clipping(painter, vx, vy)
 
             except OverflowError:
                 self.console.log(f"{obj.name} was not added due to an overflow error.")
@@ -481,11 +518,7 @@ class Canvas(QWidget):
                     )
 
         if len(clipped_points) >= 3:
-            # Preencher o polígono
             qpoints = [QPointF(x, y) for x, y in clipped_points]
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            if obj.fill:
-                painter.setBrush(obj.color)  # Fills the polygon with the object color
             painter.drawPolygon(*qpoints)
 
     def sutherland_hogdman_inside(self, x: float, y: float, edge: str) -> bool:
@@ -553,7 +586,7 @@ class Canvas(QWidget):
         if len(points) < 7:  # At least two segments
             return True
 
-        for i in range(0, len(points) - 4, 4):
+        for i in range(0, len(points) - 3, 4):
             if i + 4 >= len(points):
                 break
 
@@ -567,3 +600,39 @@ class Canvas(QWidget):
                 return False
 
         return True
+
+    def b_spline(self, x1, y1, x2, y2, x3, y3, x4, y4, precision=100) -> list[tuple[float, float]]:
+        """
+        Creates the points for the B-spline curve method using foward differences
+        """
+
+        cx, cy = create_b_spline_matrix([x1, y1], [x2, y2], [x3, y3], [x4, y4])
+        delta = 1 / precision
+        fd = forward_differences_matrix(delta)
+
+        dx = fd @ cx
+        dy = fd @ cy
+
+        x: float = dx[0,0]
+        dx1: float = dx[1,0]
+        dx2: float = dx[2,0]
+        dx3: float = dx[3,0]
+
+        y: float = dy[0,0]
+        dy1: float = dy[1,0]
+        dy2: float = dy[2,0]
+        dy3: float = dy[3,0]
+
+
+        points: list[tuple[float, float]] = []
+        for _ in range(precision + 1):
+            points.append((x, y))
+            x += dx1
+            dx1 += dx2
+            dx2 += dx3
+
+            y += dy1
+            dy1 += dy2
+            dy2 += dy3
+
+        return points

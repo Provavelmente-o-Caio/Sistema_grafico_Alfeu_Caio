@@ -1,4 +1,3 @@
-from locale import normalize
 from utils.transformations import create_coord_transform_matrix
 import numpy as np
 
@@ -14,15 +13,31 @@ class Window:
         self.rotation_angle: float = 0
 
     def width(self) -> int:
+        """
+        Returns the width of the window
+        """
+
         return self.xmax - self.xmin
 
     def height(self) -> int:
+        """
+        Returns the height of the window
+        """
+
         return self.ymax - self.ymin
 
     def center(self) -> tuple[float, float]:
+        """
+        Returns the center point of the window
+        """
+
         return (self.xmin + self.xmax) / 2, (self.ymin + self.ymax) / 2
 
     def get_transformation_matrix(self):
+        """
+        Returns the transformation matrix for the window
+        """
+
         return create_coord_transform_matrix(0, 0, self.rotation_angle, 1.0, 1.0)
 
     def pan(self, dx, dy) -> None:
@@ -45,7 +60,7 @@ class Window:
         self.ymin += dy_world
         self.ymax += dy_world
 
-    def zoom(self, factor):
+    def zoom(self, factor) -> None:
         """
         Zoom the window (centered zoom)
         """
@@ -63,7 +78,11 @@ class Window:
         self.ymin = ycenter - new_height / 2
         self.ymax = ycenter + new_height / 2
 
-    def rotate(self, angle: float):
+    def rotate(self, angle: float) -> None:
+        """
+        Rotates the window by the specified angle in degrees
+        """
+
         self.rotation_angle = (self.rotation_angle + angle) % 360
 
     def world_to_normalized(self, xw: float, yw: float) -> tuple[float, float]:
@@ -73,13 +92,15 @@ class Window:
 
         xn = (2.0 * (xw - self.xmin) / (self.xmax - self.xmin)) - 1.0
         yn = (2.0 * (yw - self.ymin) / (self.ymax - self.ymin)) - 1.0
+
         return xn, yn
 
-    def normalized_to_world(self, xn: float, yn: float)-> tuple[float, float]:
+    def normalized_to_world(self, xn: float, yn: float) -> tuple[float, float]:
         """
         Converts from Normalized Device Coordinates to World Coordinates
         """
 
         xw = self.xmin + ((xn + 1.0) * (self.xmax - self.xmin)) / 2.0
         yw = self.ymin + ((yn + 1.0) * (self.ymax - self.ymin)) / 2.0
+
         return xw, yw

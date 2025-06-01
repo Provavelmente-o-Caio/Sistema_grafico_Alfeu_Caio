@@ -264,10 +264,15 @@ class SideBar(QWidget):
                     "Error: A polygon requires at least 3 coordinate pairs."
                 )
                 return
-        if type_str == "Curve":
+        if type_str == "Curve (Bezier)":
             obj_type = ObjectType.CURVE
-            if len(coords) != 4:
+            if len(coords) % 4 != 0:
                 self.console.log("Error: A curve requires 4 coordinate pairs.")
+                return
+        if type_str == "Curve (B-Spline)":
+            obj_type = ObjectType.CURVE_BSPLINE
+            if len(coords) < 4:
+                self.console.log("Error: A B-Spline curve requires at least 4 coordinate pairs.")
                 return
 
         if obj_type:

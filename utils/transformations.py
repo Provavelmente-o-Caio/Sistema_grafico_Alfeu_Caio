@@ -52,3 +52,16 @@ def create_b_spline_matrix(p1, p2, p3, p4):
     py = b_spline @ py_matrix.T
 
     return px, py
+
+
+def forward_differences_matrix(delta: float = 0.1):
+    forward_differences = np.matrix(
+        [
+            [0, 0, 0, 1],
+            [pow(delta, 3), pow(delta, 2), delta, 0],
+            [6 * pow(delta, 3), 2 * pow(delta, 2), 0, 0],
+            [6 * pow(delta, 3), 0, 0, 0],
+        ]
+    )
+
+    return forward_differences
