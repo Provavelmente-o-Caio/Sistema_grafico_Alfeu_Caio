@@ -1,4 +1,3 @@
-from typing import Any
 import numpy as np
 from PyQt6.QtCore import QPointF, Qt
 from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
@@ -7,8 +6,12 @@ from PyQt6.QtWidgets import QWidget
 from models.window import Window
 from models.wireframe import Wireframe
 from utils.descritorOBJ import DescritorOBJ
+from utils.transformations import (
+    create_bezier_matrix,
+    forward_differences_matrix,
+    create_b_spline_matrix,
+)
 from utils.types import ObjectType
-from utils.transformations import create_bezier_matrix, forward_differences_matrix, create_b_spline_matrix
 
 
 class Canvas(QWidget):
@@ -45,6 +48,8 @@ class Canvas(QWidget):
         # Setting the line clipping Algorithm
         self.line_clipping_algorithm = "Cohen-Sutherland"
 
+        # Setting the movement mode
+        self.movement_mode = "Move"
         # Show the curves control points
         self.show_control_points = False
 
@@ -177,8 +182,8 @@ class Canvas(QWidget):
         This method is responsible for rotating a single object
         """
 
-        cx = object.getCenterObjectX()
-        cy = object.getCenterObjectY()
+        cx = object.get_center_object_x()
+        cy = object.get_center_object_y()
 
         self.translate_objects(object, -cx, -cy)
         object.rotate(angle)
@@ -203,8 +208,11 @@ class Canvas(QWidget):
         """
         Window to Viewport transformation
         """
-
-        xn, yn = self.window.world_to_normalized(xw, yw)
+        projection_matrix = self.window.parallel_orthogonal_projection()
+        coord_array = np.array([[xw, yw, 0, 1]])
+        v_proj = (coord_array @ projection_matrix)
+        
+        xn, yn = self.window.world_to_normalized(v_proj[0,0], v_proj[0,1])
 
         M = self.window.get_transformation_matrix()
         point = np.matrix([xn, yn, 1])
@@ -225,6 +233,12 @@ class Canvas(QWidget):
         self.viewport_ymax = self.height() - self.border_width
         self.update()
 
+    def move(self, dx, dy):
+        if self.movement_mode == "Move":
+            self.pan(dx, dy)
+        elif self.movement_mode == "Rotate":
+            self.rotate_camera(dx * self.step * 10, dy * self.step * 10)
+
     def pan(self, dx, dy):
         """
         Pan the window by dx and dy.
@@ -232,6 +246,14 @@ class Canvas(QWidget):
 
         self.window.pan(dx * self.step, dy * self.step)
         self.update()
+
+    def rotate_camera(self, dx, dy):
+        print(self.window.get_angles())
+        self.window.rotate_x(dx)
+        self.window.rotate_y(dy)
+        self.update()
+        print(self.window.get_angles())
+
 
     # Zoom the window
     def zoom_in(self):
@@ -256,6 +278,7 @@ class Canvas(QWidget):
             self.viewport_xmax - self.border_width,
             self.viewport_ymax - self.border_width,
         )
+        projection_matrix = self.window.parallel_orthogonal_projection()
 
         for obj in self.objects:
             try:
@@ -300,9 +323,15 @@ class Canvas(QWidget):
                             segment = self.bezier(x1, y1, x2, y2, x3, y3, x4, y4)
                             if len(segment) >= 2:
                                 for j in range(len(segment) - 1):
-                                    vx1, vy1 = self.transform_coords(segment[j][0], segment[j][1])
-                                    vx2, vy2 = self.transform_coords(segment[j + 1][0], segment[j + 1][1])
-                                    clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
+                                    vx1, vy1 = self.transform_coords(
+                                        segment[j][0], segment[j][1]
+                                    )
+                                    vx2, vy2 = self.transform_coords(
+                                        segment[j + 1][0], segment[j + 1][1]
+                                    )
+                                    clipped_line = self.line_clipping(
+                                        vx1, vy1, vx2, vy2
+                                    )
                                     if clipped_line:
                                         vx1, vy1, vx2, vy2 = clipped_line
                                         painter.drawLine(
@@ -323,8 +352,12 @@ class Canvas(QWidget):
                             x4, y4 = obj.coordinates[i + 3]
                             segment = self.b_spline(x1, y1, x2, y2, x3, y3, x4, y4)
                             for j in range(len(segment) - 1):
-                                vx1, vy1 = self.transform_coords(segment[j][0], segment[j][1])
-                                vx2, vy2 = self.transform_coords(segment[j + 1][0], segment[j + 1][1])
+                                vx1, vy1 = self.transform_coords(
+                                    segment[j][0], segment[j][1]
+                                )
+                                vx2, vy2 = self.transform_coords(
+                                    segment[j + 1][0], segment[j + 1][1]
+                                )
                                 clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
                                 if clipped_line:
                                     vx1, vy1, vx2, vy2 = clipped_line
@@ -375,6 +408,13 @@ class Canvas(QWidget):
         """
         self.line_clipping_algorithm = line_clipping_algorithm
         self.update()
+
+    def set_movement_mode(self, movement_mode: str) -> None:
+        self.movement_mode = movement_mode
+
+    @property
+    def get_movement_mode(self):
+        return self.movement_mode
 
     def cohen_sutherland(self, vx1: float, vy1: float, vx2: float, vy2: float):
         """
@@ -601,7 +641,9 @@ class Canvas(QWidget):
 
         return True
 
-    def b_spline(self, x1, y1, x2, y2, x3, y3, x4, y4, precision=100) -> list[tuple[float, float]]:
+    def b_spline(
+        self, x1, y1, x2, y2, x3, y3, x4, y4, precision=100
+    ) -> list[tuple[float, float]]:
         """
         Creates the points for the B-spline curve method using foward differences
         """
@@ -613,16 +655,15 @@ class Canvas(QWidget):
         dx = fd @ cx
         dy = fd @ cy
 
-        x: float = dx[0,0]
-        dx1: float = dx[1,0]
-        dx2: float = dx[2,0]
-        dx3: float = dx[3,0]
+        x: float = dx[0, 0]
+        dx1: float = dx[1, 0]
+        dx2: float = dx[2, 0]
+        dx3: float = dx[3, 0]
 
-        y: float = dy[0,0]
-        dy1: float = dy[1,0]
-        dy2: float = dy[2,0]
-        dy3: float = dy[3,0]
-
+        y: float = dy[0, 0]
+        dy1: float = dy[1, 0]
+        dy2: float = dy[2, 0]
+        dy3: float = dy[3, 0]
 
         points: list[tuple[float, float]] = []
         for _ in range(precision + 1):

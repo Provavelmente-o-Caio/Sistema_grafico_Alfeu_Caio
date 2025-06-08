@@ -44,15 +44,15 @@ class SideBar(QWidget):
         nav_layout = QGridLayout()
 
         # Panning controls
-        self.pan_up_btn = QPushButton("↑")
-        self.pan_down_btn = QPushButton("↓")
-        self.pan_left_btn = QPushButton("←")
-        self.pan_right_btn = QPushButton("→")
+        self.up_btn = QPushButton("↑")
+        self.down_btn = QPushButton("↓")
+        self.left_btn = QPushButton("←")
+        self.right_btn = QPushButton("→")
 
-        nav_layout.addWidget(self.pan_up_btn, 0, 1)
-        nav_layout.addWidget(self.pan_left_btn, 1, 0)
-        nav_layout.addWidget(self.pan_right_btn, 1, 2)
-        nav_layout.addWidget(self.pan_down_btn, 2, 1)
+        nav_layout.addWidget(self.up_btn, 0, 1)
+        nav_layout.addWidget(self.left_btn, 1, 0)
+        nav_layout.addWidget(self.right_btn, 1, 2)
+        nav_layout.addWidget(self.down_btn, 2, 1)
 
         # Zoom controls
         self.zoom_in_btn = QPushButton("Zoom In (+)")
@@ -60,6 +60,16 @@ class SideBar(QWidget):
 
         nav_layout.addWidget(self.zoom_in_btn, 3, 0, 1, 3)
         nav_layout.addWidget(self.zoom_out_btn, 4, 0, 1, 3)
+
+        # Mode selection button
+        self.movement_mode = QRadioButton("Move")
+        self.movement_mode.setChecked(True)
+        self.rotation_mode = QRadioButton("Rotate")
+        self.rotation_mode.setChecked(False)
+        self.movement_mode.toggled.connect(self.set_movement_mode)
+        self.rotation_mode.toggled.connect(self.set_movement_mode)
+        nav_layout.addWidget(self.movement_mode, 5, 0)
+        nav_layout.addWidget(self.rotation_mode, 5, 2)
 
         nav_group.setLayout(nav_layout)
         layout.addWidget(nav_group)
@@ -202,10 +212,10 @@ class SideBar(QWidget):
         layout.addWidget(self.options_group)
 
         # Connect signals to slots
-        self.pan_up_btn.clicked.connect(lambda: self.canvas.pan(0, 1))
-        self.pan_down_btn.clicked.connect(lambda: self.canvas.pan(0, -1))
-        self.pan_left_btn.clicked.connect(lambda: self.canvas.pan(-1, 0))
-        self.pan_right_btn.clicked.connect(lambda: self.canvas.pan(1, 0))
+        self.up_btn.clicked.connect(lambda: self.canvas.move(0, 1))
+        self.down_btn.clicked.connect(lambda: self.canvas.move(0, -1))
+        self.left_btn.clicked.connect(lambda: self.canvas.move(-1, 0))
+        self.right_btn.clicked.connect(lambda: self.canvas.move(1, 0))
         self.zoom_in_btn.clicked.connect(self.canvas.zoom_in)
         self.zoom_out_btn.clicked.connect(self.canvas.zoom_out)
         self.add_obj_btn.clicked.connect(self.add_object)
@@ -272,7 +282,9 @@ class SideBar(QWidget):
         if type_str == "Curve (B-Spline)":
             obj_type = ObjectType.CURVE_BSPLINE
             if len(coords) < 4:
-                self.console.log("Error: A B-Spline curve requires at least 4 coordinate pairs.")
+                self.console.log(
+                    "Error: A B-Spline curve requires at least 4 coordinate pairs."
+                )
                 return
 
         if obj_type:
@@ -381,6 +393,12 @@ class SideBar(QWidget):
                 f"Setting line clipping algorithm to {line_clipping_algorithm.text()}"
             )
             self.canvas.set_line_clipping_algorithm(line_clipping_algorithm.text())
+
+    def set_movement_mode(self, checked):
+        movement_mode = self.sender()
+        if checked:
+            self.console.log(f"Setting movement mode to {movement_mode.text()}")
+            self.canvas.set_movement_mode(movement_mode.text())
 
     def fill_checkbox_toggled(self, checked):
         if checked:

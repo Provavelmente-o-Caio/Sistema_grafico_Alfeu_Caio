@@ -1,17 +1,25 @@
-from typing import List, Tuple
-
 import numpy as np
 from PyQt6.QtGui import QColor
 
-from utils.transformations import create_translation_matrix, create_scale_matrix, create_rotation_matrix
+from utils.transformations import (
+    create_translation_matrix_2d,
+    create_scale_matrix_2d,
+    create_rotation_matrix_2d,
+)
 from utils.types import ObjectType
 
 
 class Wireframe:
-    def __init__(self, name: str, obj_type: ObjectType, coordinates: list[tuple[int, int]], fill: bool = False):
+    def __init__(
+        self,
+        name: str,
+        obj_type: ObjectType,
+        coordinates: list[tuple[int, int]],
+        fill: bool = False,
+    ):
         self.name: str = name
         self.obj_type: ObjectType = obj_type
-        self.coordinates: list[tuple[int,int]] = coordinates
+        self.coordinates: list[tuple[int, int]] = coordinates
         self.color: QColor = QColor("black")
         self.is_selected: bool = False
         self.fill: bool = fill
@@ -29,15 +37,15 @@ class Wireframe:
         self.is_selected = False
 
     def translate(self, dx: float, dy: float) -> None:
-        T = create_translation_matrix(dx, dy)
+        T = create_translation_matrix_2d(dx, dy)
         self.transformation(op=T)
 
     def transform(self, sx: float, sy: float) -> None:
-        S = create_scale_matrix(sx, sy)
+        S = create_scale_matrix_2d(sx, sy)
         self.transformation(op=S)
 
     def rotate(self, angle: float) -> None:
-        R = create_rotation_matrix(angle)
+        R = create_rotation_matrix_2d(angle)
         self.transformation(op=R)
 
     def transformation(self, obj=None, op=None) -> None:
@@ -45,10 +53,12 @@ class Wireframe:
         for x, y in self.coordinates:
             point = np.matrix([x, y, 1])
             transformed_point = point * op
-            new_coords.append((float(transformed_point[0, 0]), float(transformed_point[0, 1])))
+            new_coords.append(
+                (float(transformed_point[0, 0]), float(transformed_point[0, 1]))
+            )
         self.coordinates = new_coords
 
-    def getCenterObjectX(self) -> float:
+    def get_center_object_x(self) -> float:
         if not self.coordinates:
             return 0
 
@@ -57,7 +67,7 @@ class Wireframe:
             sum_x += x
         return sum_x / len(self.coordinates)
 
-    def getCenterObjectY(self) -> float:
+    def get_center_object_y(self) -> float:
         if not self.coordinates:
             return 0
 
@@ -72,7 +82,7 @@ class Wireframe:
     def get_name(self) -> str:
         return self.name
 
-    def get_color(self) -> str :
+    def get_color(self) -> str:
         return self.color.name()
 
     def get_obj_type(self) -> ObjectType:

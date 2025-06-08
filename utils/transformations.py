@@ -1,15 +1,37 @@
 import numpy as np
 
 
-def create_translation_matrix(dx, dy):
-    return np.matrix([[1, 0, 0], [0, 1, 0], [dx, dy, 1]])
+def create_translation_matrix_2d(dx: float, dy: float) -> np.matrix:
+    return np.matrix([
+        [1, 0, 0],
+        [0, 1, 0],
+        [dx, dy, 1]
+    ])
 
+def create_translation_matrix_3d(dx: float, dy: float, dz: float) -> np.matrix:
+    return np.matrix([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [dx, dy, dz, 1]
+    ])
 
-def create_scale_matrix(sx, sy):
-    return np.matrix([[sx, 0, 0], [0, sy, 0], [0, 0, 1]])
+def create_scale_matrix_2d(sx: float, sy: float) -> np.matrix:
+    return np.matrix([
+        [sx, 0, 0],
+        [0, sy, 0],
+        [0, 0, 1]
+    ])
 
+def create_scale_matrix_3d(sx: float, sy: float, sz: float) -> np.matrix:
+    return np.matrix([
+        [sx, 0, 0, 0],
+        [0, sy, 0, 0],
+        [0, 0, sz, 0],
+        [0, 0, 0, 1]
+    ])
 
-def create_rotation_matrix(angle):
+def create_rotation_matrix_2d(angle: float) -> np.matrix:
     angle = np.deg2rad(angle)
     return np.matrix(
         [
@@ -19,11 +41,56 @@ def create_rotation_matrix(angle):
         ]
     )
 
+def create_rotation_matrix_3dx(angle: float) -> np.matrix:
+    angle = np.deg2rad(angle)
+    return np.matrix([
+        [1, 0, 0, 0],
+        [0, np.cos(angle), np.sin(angle), 0],
+        [0, -np.sin(angle), np.cos(angle), 0],
+        [0, 0, 0, 1]
+    ])
+
+def create_rotation_matrix_3dy(angle: float) -> np.matrix:
+    angle = np.deg2rad(angle)
+    return np.matrix([
+        [np.cos(angle), 0, -np.sin(angle), 0],
+        [0, 1, 0, 0],
+        [np.sin(angle), 0, np.cos(angle), 0],
+        [0, 0, 0, 1]
+    ])
+
+def create_rotation_matrix_3dz(angle: float) -> np.matrix:
+    angle = np.deg2rad(angle)
+    return np.matrix([
+        [np.cos(angle), np.sin(angle), 0, 0],
+        [-np.sin(angle), np.cos(angle), 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ])
+
+def create_rotation_matrix_3d(x_angle: float, y_angle: float, z_angle: float) -> np.matrix:
+    x_angle = np.deg2rad(x_angle)
+    y_angle = np.deg2rad(y_angle)
+    z_angle = np.deg2rad(z_angle)
+
+    Rx = create_rotation_matrix_3dx(x_angle)
+    Ry = create_rotation_matrix_3dx(y_angle)
+    Rz = create_rotation_matrix_3dx(z_angle)
+
+    R = Rx @ Ry @ Rz
+    return R
 
 def create_coord_transform_matrix(cx, cy, angle, sx, sy):
-    T = create_translation_matrix(-cx, -cy)
-    R = create_rotation_matrix(angle)
-    S = create_scale_matrix(sx, sy)
+    T = create_translation_matrix_2d(-cx, -cy)
+    R = create_rotation_matrix_2d(angle)
+    S = create_scale_matrix_2d(sx, sy)
+    M = T @ R @ S
+    return M
+
+def create_coord_transform_matrix_3d(cx, cy, cz, x_angle, y_angle, z_angle):
+    T = create_translation_matrix_3d(cx, cy, cz)
+    R = create_rotation_matrix_3d(x_angle, y_angle, z_angle)
+    S = create_scale_matrix_3d(cx, cy, cz)
     M = T @ R @ S
     return M
 
