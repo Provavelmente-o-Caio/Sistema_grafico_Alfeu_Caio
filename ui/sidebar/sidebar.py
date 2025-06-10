@@ -15,6 +15,8 @@ from PyQt6.QtWidgets import (
 )
 
 from models.wireframe import Wireframe
+from models.wireframe_3d import Wireframe_3D
+from models.point_3d import Point3D
 from ui.canvas import Canvas
 from ui.color import Color
 from ui.console import Console
@@ -28,6 +30,7 @@ class SideBar(QWidget):
         self.canvas = canvas
         self.console = console
         self.tw = None
+        self.add_obj_w = None
         self.setAutoFillBackground(True)
 
         # Set background color
@@ -55,11 +58,11 @@ class SideBar(QWidget):
         nav_layout.addWidget(self.down_btn, 2, 1)
 
         # Zoom controls
-        self.zoom_in_btn = QPushButton("Zoom In (+)")
-        self.zoom_out_btn = QPushButton("Zoom Out (-)")
+        self.zoom_in_btn = QPushButton("Zoom (+)")
+        self.zoom_out_btn = QPushButton("Zoom (-)")
 
-        nav_layout.addWidget(self.zoom_in_btn, 3, 0, 1, 3)
-        nav_layout.addWidget(self.zoom_out_btn, 4, 0, 1, 3)
+        nav_layout.addWidget(self.zoom_in_btn, 3, 0)
+        nav_layout.addWidget(self.zoom_out_btn, 3, 2)
 
         # Mode selection button
         self.movement_mode = QRadioButton("Move")
@@ -68,8 +71,8 @@ class SideBar(QWidget):
         self.rotation_mode.setChecked(False)
         self.movement_mode.toggled.connect(self.set_movement_mode)
         self.rotation_mode.toggled.connect(self.set_movement_mode)
-        nav_layout.addWidget(self.movement_mode, 5, 0)
-        nav_layout.addWidget(self.rotation_mode, 5, 2)
+        nav_layout.addWidget(self.movement_mode, 4, 0)
+        nav_layout.addWidget(self.rotation_mode, 4, 2)
 
         nav_group.setLayout(nav_layout)
         layout.addWidget(nav_group)
@@ -81,7 +84,7 @@ class SideBar(QWidget):
         # Object type selection
         self.obj_type_combo = QComboBox()
         self.obj_type_combo.addItems(
-            ["Dot", "Line", "Polygon", "Curve (Bezier)", "Curve (B-Spline)"]
+           ["Dot", "Line", "Polygon", "Curve (Bezier)", "Curve (B-Spline)", "3D Polygon"]
         )
         creation_layout.addWidget(QLabel("Object Type:"))
         creation_layout.addWidget(self.obj_type_combo)
@@ -95,6 +98,11 @@ class SideBar(QWidget):
         self.coords_input = QLineEdit()
         creation_layout.addWidget(QLabel("Coordinates (x1,y1),(x2,y2),...:"))
         creation_layout.addWidget(self.coords_input)
+
+        # Edges input
+        self.edges_input = QLineEdit()
+        creation_layout.addWidget(QLabel("Edges (0, 1),(0,2),...:"))
+        creation_layout.addWidget(self.edges_input)
 
         self.selected_color = QColor("black")  # Default color
         self.color_preview = QWidget()
@@ -236,6 +244,8 @@ class SideBar(QWidget):
 
     def add_object(self):
         name = self.obj_name_input.text()
+        coords = []
+        edges = []
         if not name:
             self.console.log("Error: Object name is required.")
             return
@@ -246,6 +256,11 @@ class SideBar(QWidget):
         except Exception as e:
             self.console.log(f"Error parsing coordinates: {e}")
             return
+        try:
+            edges_str = self.edges_input.text()
+            edges = eval(edges_str)
+        except Exception as e:
+            self.console.log(f"Error parsing edges: {e}")
 
         type_str = self.obj_type_combo.currentText()
         obj_type = None
@@ -258,12 +273,18 @@ class SideBar(QWidget):
             ):
                 self.console.log("Error: A dot requires exactly 1 coordinate pair.")
                 return
+            if len(edges) != 0:
+                self.console.log("Error: A dot cannot have edges.")
+                return
         if type_str == "Line":
             obj_type = ObjectType.LINE
             if len(coords) != 2 or any(
                 not isinstance(point, tuple) or len(point) != 2 for point in coords
             ):
                 self.console.log("Error: A line requires exactly 2 coordinate pairs.")
+                return
+            if len(edges) != 0:
+                self.console.log("Error: A line cannot have edges.")
                 return
         if type_str == "Polygon":
             obj_type = ObjectType.POLYGON
@@ -273,6 +294,9 @@ class SideBar(QWidget):
                 self.console.log(
                     "Error: A polygon requires at least 3 coordinate pairs."
                 )
+                return
+            if len(edges) != 0:
+                self.console.log("Error: A polygon cannot have edges.")
                 return
         if type_str == "Curve (Bezier)":
             obj_type = ObjectType.CURVE
@@ -286,11 +310,31 @@ class SideBar(QWidget):
                     "Error: A B-Spline curve requires at least 4 coordinate pairs."
                 )
                 return
+        if type_str == "3D Polygon":
+            obj_type = ObjectType.POLYGON_3D
+            if len(coords) < 2:
+                self.console.log(
+                    "Error: A 3D polygon requires at least 2 coordinate pairs."
+                )
+                return
+            if len(edges) < 1:
+                self.console.log(
+                    "Error: A 3D polygon requires at least 1 edge."
+                )
+                return
 
         if obj_type:
             if obj_type == ObjectType.DOT:
                 coords = [coords]
-            new_obj = Wireframe(name, obj_type, coords)
+            if len(edges) == 0:
+                new_obj = Wireframe(name, obj_type, coords)
+            else:
+                points = []
+                for coord in coords:
+                    points.append(Point3D(coord))
+                if len(edges) == 2 and type(edges[0]) != tuple:
+                    edges = [edges]
+                new_obj = Wireframe_3D(name, obj_type, points, edges)
             new_obj.set_color(self.selected_color)  # Apply selected color
             new_obj.set_fill(self.fill_checkbox.isChecked())  # Apply fill option
             try:
@@ -306,6 +350,7 @@ class SideBar(QWidget):
             # Clear inputs
             self.obj_name_input.clear()
             self.coords_input.clear()
+            self.edges_input.clear()
         else:
             self.console.log("Error: failed to give an object type to the object")
 

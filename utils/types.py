@@ -7,3 +7,4 @@ class ObjectType(Enum):
     POLYGON = 3
     CURVE = 4
     CURVE_BSPLINE = 5
+    POLYGON_3D = 6

@@ -1,3 +1,4 @@
+from turtle import Pen
 import numpy as np
 from PyQt6.QtCore import QPointF, Qt
 from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
@@ -5,6 +6,8 @@ from PyQt6.QtWidgets import QWidget
 
 from models.window import Window
 from models.wireframe import Wireframe
+from models.wireframe_3d import Wireframe_3D
+from models.point_3d import Point3D
 from utils.descritorOBJ import DescritorOBJ
 from utils.transformations import (
     create_bezier_matrix,
@@ -29,7 +32,7 @@ class Canvas(QWidget):
         self.setMinimumSize(400, 300)
 
         # List to store all wireframe objects (display file)
-        self.objects: List[Wireframe] = []
+        self.objects: List[Wireframe|Wireframe_3D] = []
 
         # Window and viewport setup
         self.window = Window()
@@ -89,14 +92,14 @@ class Canvas(QWidget):
         triangle.set_color(QColor("blue"))
         self.add_object(triangle)
 
-        square = Wireframe(
+        cube = Wireframe_3D(
             "Square Example",
-            ObjectType.POLYGON,
-            [(-5, -5), (5, -5), (5, 5), (-5, 5)],
-            fill=False,
+            ObjectType.POLYGON_3D,
+            [Point3D((-5, -5, 0)), Point3D((5, -5, 0)), Point3D((5, 5, 0)), Point3D((-5, 5, 0)), Point3D((-5, -5, 5)), Point3D((5, -5, 5)), Point3D((5, 5, 5)), Point3D((-5, 5, 5))],
+            [(0, 1), (0, 3), (0, 4), (1, 2), (1, 5), (2, 3), (2, 6), (3, 7), (4, 5), (4, 7), (5, 6), (6, 7)]
         )
-        square.set_color(QColor("yellow"))
-        self.add_object(square)
+        cube.set_color(QColor("purple"))
+        self.add_object(cube)
 
         curve = Wireframe(
             "Continuous Curve",
@@ -204,14 +207,14 @@ class Canvas(QWidget):
 
         self.update()
 
-    def transform_coords(self, xw, yw):
+    def transform_coords(self, xw, yw, zw = 0):
         """
         Window to Viewport transformation
         """
         projection_matrix = self.window.parallel_orthogonal_projection()
-        coord_array = np.array([[xw, yw, 0, 1]])
+        coord_array = np.array([[xw, yw, zw, 1]])
         v_proj = (coord_array @ projection_matrix)
-        
+
         xn, yn = self.window.world_to_normalized(v_proj[0,0], v_proj[0,1])
 
         M = self.window.get_transformation_matrix()
@@ -248,12 +251,9 @@ class Canvas(QWidget):
         self.update()
 
     def rotate_camera(self, dx, dy):
-        print(self.window.get_angles())
         self.window.rotate_x(dx)
         self.window.rotate_y(dy)
         self.update()
-        print(self.window.get_angles())
-
 
     # Zoom the window
     def zoom_in(self):
@@ -369,6 +369,18 @@ class Canvas(QWidget):
                                 vx, vy = self.transform_coords(x, y)
                                 painter.setBrush(QColor("Magenta"))
                                 self.point_clipping(painter, vx, vy)
+                elif obj.obj_type == ObjectType.POLYGON_3D:
+                    for edge in obj.edges:
+                        x1, y1, z1 = obj.points[edge[0]].get_coordinates()
+                        x2, y2, z2 = obj.points[edge[1]].get_coordinates()
+                        vx1, vy1 = self.transform_coords(x1, y1, z1)
+                        vx2, vy2 = self.transform_coords(x2, y2, z2)
+                        clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
+                        if clipped_line:
+                            vx1, vy1, vx2, vy2 = clipped_line
+                            painter.drawLine(
+                                int(vx1), int(vy1), int(vx2), int(vy2)
+                            )
 
             except OverflowError:
                 self.console.log(f"{obj.name} was not added due to an overflow error.")

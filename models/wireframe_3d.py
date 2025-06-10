@@ -8,8 +8,8 @@ class Wireframe_3D:
         name: str,
         obj_type: ObjectType,
         points: list[Point3D],
+        edges: list[tuple[int, int]],
         fill: bool = False,
-        edges: list[tuple[int, int]] = None,
     ):
         self.name: str = name
         self.obj_type: ObjectType = obj_type
@@ -17,7 +17,7 @@ class Wireframe_3D:
         self.color: str = "black"
         self.is_selected: bool = False
         self.fill: bool = fill
-        self.edges = edges if edges is not None else []
+        self.edges: list[tuple[int, int]] = edges
 
     def set_fill(self, fill: bool) -> None:
         self.fill = fill

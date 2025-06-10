@@ -7,26 +7,14 @@ from utils.transformations import (
     create_rotation_matrix_3dy,
     create_rotation_matrix_3dz,
 )
-from utils.types import ObjectType
 
 
 class Point3D:
-    def __init__(self, obj_type: ObjectType, coordinates: list[tuple[int, int, int]]):
-        self.obj_type: ObjectType = obj_type
+    def __init__(self, coordinates: list[tuple[int, int, int]]):
         self.coordinates: list[tuple[int, int, int]] = coordinates
-        self.color: str = "black"
 
-    def set_color(self, color: str) -> None:
-        self.color = color
-
-    def export_coordinates(self) -> list[tuple[int, int, int]]:
+    def get_coordinates(self) -> list[tuple[int, int, int]]:
         return self.coordinates
-
-    def get_color(self) -> str:
-        return self.color
-
-    def get_obj_type(self) -> ObjectType:
-        return self.obj_type
 
     def translate(self, dx: float, dy: float, dz: float) -> None:
         T = create_translation_matrix_3d(dx, dy, dz)
