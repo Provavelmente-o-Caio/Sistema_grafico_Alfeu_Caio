@@ -1,5 +1,6 @@
 from models.point_3d import Point3D
 from utils.types import ObjectType
+from PyQt6.QtGui import QColor
 
 
 class Wireframe_3D:
@@ -14,7 +15,7 @@ class Wireframe_3D:
         self.name: str = name
         self.obj_type: ObjectType = obj_type
         self.points: list[Point3D] = points
-        self.color: str = "black"
+        self.color: QColor = QColor("black")
         self.is_selected: bool = False
         self.fill: bool = fill
         self.edges: list[tuple[int, int]] = edges
@@ -51,12 +52,17 @@ class Wireframe_3D:
         for point in self.points:
             point.rotate_z(angle)
 
+    def rotate(self, angle_x: float, angle_y: float, angle_z: float):
+        for point in self.points:
+            point.rotate(angle_x, angle_y, angle_z)
+
     def get_center_object_x(self) -> float:
         if not self.points:
             return 0
         sum_x = 0
         for point in self.points:
-            sum_x += point.coordinates[0][0]
+            print(point.get_coordinates())
+            sum_x += point.get_coordinates()[0]
         return sum_x / len(self.points)
 
     def get_center_object_y(self) -> float:
@@ -64,7 +70,7 @@ class Wireframe_3D:
             return 0
         sum_y = 0
         for point in self.points:
-            sum_y += point.coordinates[0][1]
+            sum_y += point.get_coordinates()[1]
         return sum_y / len(self.points)
 
     def get_center_object_z(self) -> float:
@@ -72,17 +78,17 @@ class Wireframe_3D:
             return 0
         sum_z = 0
         for point in self.points:
-            sum_z += point.coordinates[0][2]
+            sum_z += point.get_coordinates()[2]
         return sum_z / len(self.points)
 
-    def export_coordinates(self) -> list[tuple[int, int, int]]:
-        return [point.coordinates[0] for point in self.points]
+    def export_coordinates(self) -> list[Point3D]:
+        return self.points
 
     def get_name(self) -> str:
         return self.name
 
     def get_color(self) -> str:
-        return self.color
+        return self.color.name()
 
     def get_obj_type(self) -> ObjectType:
         return self.obj_type

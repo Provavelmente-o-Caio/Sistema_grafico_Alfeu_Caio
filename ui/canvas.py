@@ -153,57 +153,79 @@ class Canvas(QWidget):
         self.objects.clear()
         self.update()
 
-    def translate_objects(self, object: Wireframe, dx: float, dy: float):
+    def translate_objects(self, object: Wireframe | Wireframe_3D, dx: float, dy: float, dz: float = 0):
         """
         This method is responsible for 2D translation.
         It basically is adding and/or subtracting coordinates to all objects
         """
 
-        object.translate(dx, dy)
+        if isinstance(object, Wireframe):
+            object.translate(dx, dy)
+        elif isinstance(object, Wireframe_3D):
+            object.translate(dx, dy, dz)
         self.update()
 
-    def transform_objects(self, object: Wireframe, dx: float, dy: float):
+    def transform_objects(self, object: Wireframe | Wireframe_3D, dx: float, dy: float, dz: float = 0):
         """
         This method is responsible for 2D transformation.
         It basically is mutltiplication coordinates to an objects
         """
 
-        object.transform(dx, dy)
+        if isinstance(object, Wireframe):
+            object.transform(dx, dy)
+        elif isinstance(object, Wireframe_3D):
+            object.transform(dx, dy, dz)
         self.update()
 
-    def rotate_objects(self, object: Wireframe, angle: float):
+    def rotate_objects(self, object: Wireframe | Wireframe_3D, angle_x: float, angle_y: float, angle_z: float):
         """
-        This method is responsible for 2D rotation
+        This method is responsible for 3D rotation
         It basically is multiplying the objects for sin and cos
         """
 
-        object.rotate(angle)
+        if isinstance(object, Wireframe):
+            object.rotate(angle_z)
+        elif isinstance(object, Wireframe_3D):
+            object.rotate(angle_x, angle_y, angle_z)
         self.update()
 
-    def rotateWithCenter(self, object: Wireframe, angle: float):
+    def rotateWithCenter(self, object: Wireframe | Wireframe_3D, angle: float):
         """
         This method is responsible for rotating a single object
         """
 
-        cx = object.get_center_object_x()
-        cy = object.get_center_object_y()
+        if isinstance(object, Wireframe):
+            cx = object.get_center_object_x()
+            cy = object.get_center_object_y()
 
-        self.translate_objects(object, -cx, -cy)
-        object.rotate(angle)
+            self.translate_objects(object, -cx, -cy)
+            object.rotate(angle)
+            self.translate_objects(object, cx, cy)
+        elif isinstance(object, Wireframe_3D):
+            cx = object.get_center_object_x()
+            cy = object.get_center_object_y()
+            cz = object.get_center_object_x()
 
-        self.translate_objects(object, cx, cy)
+            self.translate_objects(object, -cx, -cy, -cz)
+            object.rotate_z(angle)
+            self.translate_objects(object, cx, cy, cz)
 
         self.update()
 
-    def rotateInPoint(self, object: Wireframe, angle: float, px: float, py: float):
+    def rotateInPoint(self, object: Wireframe | Wireframe_3D, angle: float, px: float, py: float, pz: float = 0):
         """
         This method rotates an object around a specific point
         """
 
-        object.translate(-px, -py)
+        if isinstance(object, Wireframe):
+            object.translate(-px, -py)
 
-        object.rotate(angle)
-        object.translate(px, py)
+            object.rotate(angle)
+            object.translate(px, py)
+        elif isInstance(object, Wireframe_3D):
+            object.translate(-px, -py, -pz)
+            object.rotate_z(angle)
+            object.translate(px, py, pz)
 
         self.update()
 
@@ -371,8 +393,12 @@ class Canvas(QWidget):
                                 self.point_clipping(painter, vx, vy)
                 elif obj.obj_type == ObjectType.POLYGON_3D:
                     for edge in obj.edges:
-                        x1, y1, z1 = obj.points[edge[0]].get_coordinates()
-                        x2, y2, z2 = obj.points[edge[1]].get_coordinates()
+                        if len(obj.points[int(edge[0])].get_coordinates()) == 1:
+                            x1, y1, z1 = obj.points[int(edge[0])].get_coordinates()[0]
+                            x2, y2, z2 = obj.points[int(edge[1])].get_coordinates()[0]
+                        else:
+                            x1, y1, z1 = obj.points[int(edge[0])].get_coordinates()
+                            x2, y2, z2 = obj.points[int(edge[1])].get_coordinates()
                         vx1, vy1 = self.transform_coords(x1, y1, z1)
                         vx2, vy2 = self.transform_coords(x2, y2, z2)
                         clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
