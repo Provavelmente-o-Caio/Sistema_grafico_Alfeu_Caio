@@ -190,7 +190,7 @@ class TransformationWindow(QWidget):
                     break
 
         self.console.log(
-            f"Rotated {len(selected_items)} object(s) by {angle_z} degrees."
+            f"Rotated {len(selected_items)} object(s) by x: {angle_x}, y: {angle_y}, z: {angle_z} degrees."
         )
 
     def apply_rotation_in_center(self):
