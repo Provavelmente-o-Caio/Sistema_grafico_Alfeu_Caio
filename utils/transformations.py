@@ -69,13 +69,9 @@ def create_rotation_matrix_3dz(angle: float) -> np.matrix:
     ])
 
 def create_rotation_matrix_3d(x_angle: float, y_angle: float, z_angle: float) -> np.matrix:
-    x_angle = np.deg2rad(x_angle)
-    y_angle = np.deg2rad(y_angle)
-    z_angle = np.deg2rad(z_angle)
-
     Rx = create_rotation_matrix_3dx(x_angle)
-    Ry = create_rotation_matrix_3dz(y_angle)
-    Rz = create_rotation_matrix_3dy(z_angle)
+    Ry = create_rotation_matrix_3dy(y_angle)
+    Rz = create_rotation_matrix_3dz(z_angle)
 
     R = Rx @ Ry @ Rz
     return R

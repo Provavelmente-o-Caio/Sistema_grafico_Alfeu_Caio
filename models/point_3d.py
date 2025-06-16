@@ -46,12 +46,12 @@ class Point3D:
         new_coords = []
         x, y, z = self.coordinates
         point = np.matrix([x, y, z, 1])
-        transformed_point = point * op
+        transformed_point = point @ op
         new_coords.append(
             (
                 float(transformed_point[0, 0]),
                 float(transformed_point[0, 1]),
-                float(transformed_point[0, 2]),
+                float(transformed_point[0, 2])
             )
         )
         if len(new_coords) == 1:

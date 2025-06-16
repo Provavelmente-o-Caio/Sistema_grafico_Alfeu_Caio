@@ -52,7 +52,7 @@ class Wireframe:
         new_coords = []
         for x, y in self.coordinates:
             point = np.matrix([x, y, 1])
-            transformed_point = point * op
+            transformed_point = point @ op
             new_coords.append(
                 (float(transformed_point[0, 0]), float(transformed_point[0, 1]))
             )
