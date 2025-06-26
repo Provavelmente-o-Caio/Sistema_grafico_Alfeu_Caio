@@ -83,12 +83,20 @@ def create_coord_transform_matrix(cx, cy, angle, sx, sy):
     M = T @ R @ S
     return M
 
-def create_coord_transform_matrix_3d(cx, cy, cz, x_angle, y_angle, z_angle):
+def create_coord_transform_matrix_3d(cx, cy, cz, x_angle, y_angle, z_angle, sx, sy, sz):
     T = create_translation_matrix_3d(cx, cy, cz)
     R = create_rotation_matrix_3d(x_angle, y_angle, z_angle)
-    S = create_scale_matrix_3d(cx, cy, cz)
+    S = create_scale_matrix_3d(sx, sy, sz)
     M = T @ R @ S
     return M
+
+def create_perspective_matrix(d: int) -> np.matrix:
+    return np.matrix([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 1/d, 0]
+    ])
 
 
 def create_bezier_matrix(p1, p2, p3, p4):

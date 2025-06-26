@@ -51,11 +51,15 @@ class SideBar(QWidget):
         self.down_btn = QPushButton("↓")
         self.left_btn = QPushButton("←")
         self.right_btn = QPushButton("→")
+        self.foward_btn = QPushButton("↥")
+        self.back_btn = QPushButton("↧")
 
         nav_layout.addWidget(self.up_btn, 0, 1)
         nav_layout.addWidget(self.left_btn, 1, 0)
         nav_layout.addWidget(self.right_btn, 1, 2)
         nav_layout.addWidget(self.down_btn, 2, 1)
+        nav_layout.addWidget(self.foward_btn, 2, 0)
+        nav_layout.addWidget(self.back_btn, 2, 2)
 
         # Zoom controls
         self.zoom_in_btn = QPushButton("Zoom (+)")
@@ -84,7 +88,7 @@ class SideBar(QWidget):
         # Object type selection
         self.obj_type_combo = QComboBox()
         self.obj_type_combo.addItems(
-           ["Dot", "Line", "Polygon", "Curve (Bezier)", "Curve (B-Spline)", "3D Polygon"]
+           ["Dot | 2D", "Line | 2D", "Polygon | 2D", "Curve (Bezier) | 2D", "Curve (B-Spline) | 2D", "Polygon | 3D"]
         )
         creation_layout.addWidget(QLabel("Object Type:"))
         creation_layout.addWidget(self.obj_type_combo)
@@ -220,10 +224,12 @@ class SideBar(QWidget):
         layout.addWidget(self.options_group)
 
         # Connect signals to slots
-        self.up_btn.clicked.connect(lambda: self.canvas.move(0, 1))
-        self.down_btn.clicked.connect(lambda: self.canvas.move(0, -1))
-        self.left_btn.clicked.connect(lambda: self.canvas.move(-1, 0))
-        self.right_btn.clicked.connect(lambda: self.canvas.move(1, 0))
+        self.up_btn.clicked.connect(lambda: self.canvas.move(0, 1, 0))
+        self.down_btn.clicked.connect(lambda: self.canvas.move(0, -1, 0))
+        self.left_btn.clicked.connect(lambda: self.canvas.move(-1, 0, 0))
+        self.right_btn.clicked.connect(lambda: self.canvas.move(1, 0, 0))
+        self.foward_btn.clicked.connect(lambda: self.canvas.move(0, 0, 1))
+        self.back_btn.clicked.connect(lambda: self.canvas.move(0, 0, -1))
         self.zoom_in_btn.clicked.connect(self.canvas.zoom_in)
         self.zoom_out_btn.clicked.connect(self.canvas.zoom_out)
         self.add_obj_btn.clicked.connect(self.add_object)
@@ -264,7 +270,7 @@ class SideBar(QWidget):
 
         type_str = self.obj_type_combo.currentText()
         obj_type = None
-        if type_str == "Dot":
+        if type_str == "Dot | 2D":
             obj_type = ObjectType.DOT
             if (
                 len(coords) != 2
@@ -276,7 +282,7 @@ class SideBar(QWidget):
             if len(edges) != 0:
                 self.console.log("Error: A dot cannot have edges.")
                 return
-        if type_str == "Line":
+        if type_str == "Line | 2D":
             obj_type = ObjectType.LINE
             if len(coords) != 2 or any(
                 not isinstance(point, tuple) or len(point) != 2 for point in coords
@@ -286,7 +292,7 @@ class SideBar(QWidget):
             if len(edges) != 0:
                 self.console.log("Error: A line cannot have edges.")
                 return
-        if type_str == "Polygon":
+        if type_str == "Polygon | 2D":
             obj_type = ObjectType.POLYGON
             if len(coords) < 3 or any(
                 not isinstance(point, tuple) or len(point) != 2 for point in coords
@@ -298,19 +304,19 @@ class SideBar(QWidget):
             if len(edges) != 0:
                 self.console.log("Error: A polygon cannot have edges.")
                 return
-        if type_str == "Curve (Bezier)":
+        if type_str == "Curve (Bezier) | 2D":
             obj_type = ObjectType.CURVE
             if len(coords) % 4 != 0:
                 self.console.log("Error: A curve requires 4 coordinate pairs.")
                 return
-        if type_str == "Curve (B-Spline)":
+        if type_str == "Curve (B-Spline) | 2D":
             obj_type = ObjectType.CURVE_BSPLINE
             if len(coords) < 4:
                 self.console.log(
                     "Error: A B-Spline curve requires at least 4 coordinate pairs."
                 )
                 return
-        if type_str == "3D Polygon":
+        if type_str == "Polygon | 3D":
             obj_type = ObjectType.POLYGON_3D
             if len(coords) < 2:
                 self.console.log(
@@ -387,7 +393,7 @@ class SideBar(QWidget):
             return
         try:
             angle = float(angle)
-            self.canvas.window.rotate(angle)
+            self.canvas.window.rotate_z(angle)
             self.canvas.update()
             self.console.log(f"Rotating window by {angle} degrees")
         except ValueError:
@@ -401,7 +407,7 @@ class SideBar(QWidget):
             return
         try:
             angle = -float(angle)
-            self.canvas.window.rotate(angle)
+            self.canvas.window.rotate_z(angle)
             self.canvas.update()
             self.console.log(f"Rotating window by {angle} degrees")
         except ValueError:

@@ -35,7 +35,7 @@ class Canvas(QWidget):
         self.objects: List[Wireframe|Wireframe_3D] = []
 
         # Window and viewport setup
-        self.window = Window()
+        self.window: Window = Window()
         self.border_width: int = 50
         self.viewport_xmin: int = self.border_width
         self.viewport_ymin: int = self.border_width
@@ -98,7 +98,7 @@ class Canvas(QWidget):
             [Point3D((-5, -5, 0)), Point3D((5, -5, 0)), Point3D((5, 5, 0)), Point3D((-5, 5, 0)), Point3D((-5, -5, 5)), Point3D((5, -5, 5)), Point3D((5, 5, 5)), Point3D((-5, 5, 5))],
             [(0, 1), (0, 3), (0, 4), (1, 2), (1, 5), (2, 3), (2, 6), (3, 7), (4, 5), (4, 7), (5, 6), (6, 7)]
         )
-        cube.set_color(QColor("purple"))
+        cube.set_color(QColor("cyan"))
         self.add_object(cube)
 
         curve = Wireframe(
@@ -219,30 +219,28 @@ class Canvas(QWidget):
 
         if isinstance(object, Wireframe):
             object.translate(-px, -py)
-
             object.rotate(angle)
             object.translate(px, py)
         elif isInstance(object, Wireframe_3D):
             object.translate(-px, -py, -pz)
             object.rotate_z(angle)
             object.translate(px, py, pz)
-
         self.update()
 
     def transform_coords(self, xw, yw, zw = 0):
         """
         Window to Viewport transformation
         """
-        projection_matrix = self.window.parallel_orthogonal_projection()
+        projection_matrix = self.window.perspective_projection()
         coord_array = np.array([[xw, yw, zw, 1]])
         v_proj = (coord_array @ projection_matrix)
 
-        xn, yn = self.window.world_to_normalized(v_proj[0,0], v_proj[0,1])
+        xn, yn, zn = self.window.world_to_normalized(v_proj[0,0], v_proj[0,1], v_proj[0,2])
 
         M = self.window.get_transformation_matrix()
-        point = np.matrix([xn, yn, 1])
+        point = np.matrix([xn, yn, zn, 1])
         transformed = point * M
-        xt, yt = float(transformed[0, 0]), float(transformed[0, 1])
+        xt, yt, _ = float(transformed[0, 0]), float(transformed[0, 1]), float(transformed[0, 2])
 
         xvp = self.viewport_xmin + (self.viewport_xmax - self.viewport_xmin) * (
             (xt + 1) / 2
@@ -258,23 +256,24 @@ class Canvas(QWidget):
         self.viewport_ymax = self.height() - self.border_width
         self.update()
 
-    def move(self, dx, dy):
+    def move(self, dx, dy, dz):
         if self.movement_mode == "Move":
-            self.pan(dx, dy)
+            self.pan(dx, dy, dz)
         elif self.movement_mode == "Rotate":
-            self.rotate_camera(dx * self.step * 10, dy * self.step * 10)
+            self.rotate_camera(dx * 10, dy * 10, dz * 10)
 
-    def pan(self, dx, dy):
+    def pan(self, dx, dy, dz):
         """
         Pan the window by dx and dy.
         """
 
-        self.window.pan(dx * self.step, dy * self.step)
+        self.window.pan(dx * self.step, dy * self.step, dz * self.step)
         self.update()
 
-    def rotate_camera(self, dx, dy):
-        self.window.rotate_x(dx)
-        self.window.rotate_y(dy)
+    def rotate_camera(self, dx, dy, dz):
+        self.window.rotate_x(dx * self.step)
+        self.window.rotate_y(dy * self.step)
+        self.window.rotate_z(dz * self.step)
         self.update()
 
     # Zoom the window
@@ -300,7 +299,6 @@ class Canvas(QWidget):
             self.viewport_xmax - self.border_width,
             self.viewport_ymax - self.border_width,
         )
-        projection_matrix = self.window.parallel_orthogonal_projection()
 
         for obj in self.objects:
             try:
