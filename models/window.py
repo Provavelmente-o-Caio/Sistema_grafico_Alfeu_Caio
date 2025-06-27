@@ -159,7 +159,7 @@ class Window:
         vrp = create_translation_matrix_3d(-vrp_x, -vrp_y, -vrp_z)
         vpn_x = create_rotation_matrix_3dx(-self.__x_rotation_angle)
         vpn_y = create_rotation_matrix_3dy(-self.__y_rotation_angle)
-        d = 40
+        d = 4
         cop = create_perspective_matrix(d)
 
         return vrp @ vpn_x @ vpn_y @ cop

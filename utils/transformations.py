@@ -1,39 +1,39 @@
 import numpy as np
 
 
-def create_translation_matrix_2d(dx: float, dy: float) -> np.matrix:
-    return np.matrix([
+def create_translation_matrix_2d(dx: float, dy: float) -> np.array:
+    return np.array([
         [1, 0, 0],
         [0, 1, 0],
         [dx, dy, 1]
     ])
 
-def create_translation_matrix_3d(dx: float, dy: float, dz: float) -> np.matrix:
-    return np.matrix([
+def create_translation_matrix_3d(dx: float, dy: float, dz: float) -> np.array:
+    return np.array([
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
         [dx, dy, dz, 1]
     ])
 
-def create_scale_matrix_2d(sx: float, sy: float) -> np.matrix:
-    return np.matrix([
+def create_scale_matrix_2d(sx: float, sy: float) -> np.array:
+    return np.array([
         [sx, 0, 0],
         [0, sy, 0],
         [0, 0, 1]
     ])
 
-def create_scale_matrix_3d(sx: float, sy: float, sz: float) -> np.matrix:
-    return np.matrix([
+def create_scale_matrix_3d(sx: float, sy: float, sz: float) -> np.array:
+    return np.array([
         [sx, 0, 0, 0],
         [0, sy, 0, 0],
         [0, 0, sz, 0],
         [0, 0, 0, 1]
     ])
 
-def create_rotation_matrix_2d(angle: float) -> np.matrix:
+def create_rotation_matrix_2d(angle: float) -> np.array:
     angle = np.deg2rad(angle)
-    return np.matrix(
+    return np.array(
         [
             [np.cos(angle), -np.sin(angle), 0],
             [np.sin(angle), np.cos(angle), 0],
@@ -41,34 +41,34 @@ def create_rotation_matrix_2d(angle: float) -> np.matrix:
         ]
     )
 
-def create_rotation_matrix_3dx(angle: float) -> np.matrix:
+def create_rotation_matrix_3dx(angle: float) -> np.array:
     angle = np.deg2rad(angle)
-    return np.matrix([
+    return np.array([
         [1, 0, 0, 0],
         [0, np.cos(angle), np.sin(angle), 0],
         [0, -np.sin(angle), np.cos(angle), 0],
         [0, 0, 0, 1]
     ])
 
-def create_rotation_matrix_3dy(angle: float) -> np.matrix:
+def create_rotation_matrix_3dy(angle: float) -> np.array:
     angle = np.deg2rad(angle)
-    return np.matrix([
+    return np.array([
         [np.cos(angle), 0, -np.sin(angle), 0],
         [0, 1, 0, 0],
         [np.sin(angle), 0, np.cos(angle), 0],
         [0, 0, 0, 1]
     ])
 
-def create_rotation_matrix_3dz(angle: float) -> np.matrix:
+def create_rotation_matrix_3dz(angle: float) -> np.array:
     angle = np.deg2rad(angle)
-    return np.matrix([
+    return np.array([
         [np.cos(angle), np.sin(angle), 0, 0],
         [-np.sin(angle), np.cos(angle), 0, 0],
         [0, 0, 1, 0],
         [0, 0, 0, 1]
     ])
 
-def create_rotation_matrix_3d(x_angle: float, y_angle: float, z_angle: float) -> np.matrix:
+def create_rotation_matrix_3d(x_angle: float, y_angle: float, z_angle: float) -> np.array:
     Rx = create_rotation_matrix_3dx(x_angle)
     Ry = create_rotation_matrix_3dy(y_angle)
     Rz = create_rotation_matrix_3dz(z_angle)
@@ -90,20 +90,19 @@ def create_coord_transform_matrix_3d(cx, cy, cz, x_angle, y_angle, z_angle, sx, 
     M = T @ R @ S
     return M
 
-def create_perspective_matrix(d: int) -> np.matrix:
-    return np.matrix([
+def create_perspective_matrix(d: int) -> np.array:
+    return np.array([
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
         [0, 0, 1/d, 0]
-    ])
-
+    ]).T
 
 def create_bezier_matrix(p1, p2, p3, p4):
-    bezier = np.matrix([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 3, 0, 0], [1, 0, 0, 0]])
+    bezier = np.array([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 3, 0, 0], [1, 0, 0, 0]])
 
-    px_matrix = np.matrix([[p1[0], p2[0], p3[0], p4[0]]])
-    py_matrix = np.matrix([[p1[1], p2[1], p3[1], p4[1]]])
+    px_matrix = np.array([[p1[0], p2[0], p3[0], p4[0]]])
+    py_matrix = np.array([[p1[1], p2[1], p3[1], p4[1]]])
 
     px = bezier @ px_matrix.T
     py = bezier @ py_matrix.T
@@ -113,11 +112,11 @@ def create_bezier_matrix(p1, p2, p3, p4):
 
 def create_b_spline_matrix(p1, p2, p3, p4):
     b_spline = (
-        np.matrix([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 0, 3, 0], [1, 4, 1, 0]]) / 6
+        np.array([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 0, 3, 0], [1, 4, 1, 0]]) / 6
     )
 
-    px_matrix = np.matrix([[p1[0], p2[0], p3[0], p4[0]]])
-    py_matrix = np.matrix([[p1[1], p2[1], p3[1], p4[1]]])
+    px_matrix = np.array([[p1[0], p2[0], p3[0], p4[0]]])
+    py_matrix = np.array([[p1[1], p2[1], p3[1], p4[1]]])
 
     px = b_spline @ px_matrix.T
     py = b_spline @ py_matrix.T
@@ -126,7 +125,7 @@ def create_b_spline_matrix(p1, p2, p3, p4):
 
 
 def forward_differences_matrix(delta: float = 0.1):
-    forward_differences = np.matrix(
+    forward_differences = np.array(
         [
             [0, 0, 0, 1],
             [pow(delta, 3), pow(delta, 2), delta, 0],

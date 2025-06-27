@@ -198,6 +198,7 @@ class SideBar(QWidget):
         self.options_layout = QVBoxLayout()
 
         # Clipping algorithm selection
+        self.clipping_layout = QVBoxLayout()
         self.clipping_label = QLabel("Clipping Algorithm")
         self.line_clipping_algorithm_cs = QRadioButton("Cohen-Sutherland")
         self.line_clipping_algorithm_cs.setChecked(True)
@@ -222,6 +223,21 @@ class SideBar(QWidget):
 
         self.options_group.setLayout(self.options_layout)
         layout.addWidget(self.options_group)
+
+        # Projection selection
+        self.projection_group = QGroupBox("Projection")
+        self.projection_layout = QVBoxLayout()
+        self.parallel_orthogonal_projection = QRadioButton("Parallel Projection")
+        self.parallel_orthogonal_projection.setChecked(True)
+        self.perspective_projection = QRadioButton("Perspective Projection")
+        self.perspective_projection.setChecked(False)
+        self.parallel_orthogonal_projection.toggled.connect(self.set_projection_mode)
+        self.perspective_projection.toggled.connect(self.set_projection_mode)
+        self.projection_layout.addWidget(self.parallel_orthogonal_projection)
+        self.projection_layout.addWidget(self.perspective_projection)
+        self.projection_group.setLayout(self.projection_layout)
+        layout.addWidget(self.projection_group)
+
 
         # Connect signals to slots
         self.up_btn.clicked.connect(lambda: self.canvas.move(0, 1, 0))
@@ -465,3 +481,11 @@ class SideBar(QWidget):
         else:
             self.console.log("Hiding curve control points")
         self.canvas.update()
+
+    def set_projection_mode(self, checked):
+        projection = self.sender()
+        if checked:
+            self.console.log(
+                f"Setting projection algorithm to {projection.text()}"
+            )
+            self.canvas.set_projection_mode(projection.text())
