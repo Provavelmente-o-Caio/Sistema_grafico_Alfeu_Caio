@@ -3,6 +3,7 @@ import numpy as np
 from PyQt6.QtCore import QPointF, Qt
 from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
 from PyQt6.QtWidgets import QWidget
+import math
 
 from models.window import Window
 from models.wireframe import Wireframe
@@ -140,6 +141,38 @@ class Canvas(QWidget):
         )
         bspline.set_color(QColor("purple"))
         self.add_object(bspline)
+
+        center = (0, 0)
+        radius = 4
+        height = 4
+
+        # uso de IA:
+        # pode desenhar um wireframe_3d no load_example_objects no formato de um hexágono?
+        points = []
+        for z in [-height/2, height/2]:
+            for i in range(6):
+                angle = 2 * math.pi * i / 6
+                x = center[0] + radius * math.cos(angle)
+                y = center[1] + radius * math.sin(angle)
+                points.append(Point3D((x, y, z)))
+
+        edges = []
+        for i in range(6):
+            # Superior
+            edges.append((i, (i + 1) % 6))
+            # Inferior
+            edges.append((i + 6, ((i + 1) % 6) + 6))
+            # Ligações verticais
+            edges.append((i, i + 6))
+
+        hexagon3d = Wireframe_3D(
+            "Hexagonal Prism",
+            ObjectType.POLYGON_3D,
+            points,
+            edges
+        )
+        hexagon3d.set_color(QColor("red"))
+        self.add_object(hexagon3d)
 
     def remove_object(self, name: str):
         """
