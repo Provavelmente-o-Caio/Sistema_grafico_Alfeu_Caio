@@ -17,6 +17,8 @@ from PyQt6.QtWidgets import (
 from models.wireframe import Wireframe
 from models.wireframe_3d import Wireframe_3D
 from models.point_3d import Point3D
+from models.surface_3d import Surface3D
+from models.surface_BSpline import SurfaceBSplineFD
 from ui.canvas import Canvas
 from ui.color import Color
 from ui.console import Console
@@ -88,7 +90,7 @@ class SideBar(QWidget):
         # Object type selection
         self.obj_type_combo = QComboBox()
         self.obj_type_combo.addItems(
-           ["Dot | 2D", "Line | 2D", "Polygon | 2D", "Curve (Bezier) | 2D", "Curve (B-Spline) | 2D", "Polygon | 3D"]
+           ["Dot | 2D", "Line | 2D", "Polygon | 2D", "Curve (Bezier) | 2D", "Curve (B-Spline) | 2D", "Polygon | 3D", "Surface (Bezier) | 3D", "Surface (B-Spline) | 3D", "Surface (B-Spline FD) | 3D"]
         )
         creation_layout.addWidget(QLabel("Object Type:"))
         creation_layout.addWidget(self.obj_type_combo)
@@ -286,6 +288,7 @@ class SideBar(QWidget):
 
         type_str = self.obj_type_combo.currentText()
         obj_type = None
+        
         if type_str == "Dot | 2D":
             obj_type = ObjectType.DOT
             if (
@@ -344,6 +347,73 @@ class SideBar(QWidget):
                     "Error: A 3D polygon requires at least 1 edge."
                 )
                 return
+        if type_str == "Surface (Bezier) | 3D":
+            obj_type = ObjectType.SURFACE_BEZIER
+            if len(coords) != 16:
+                self.console.log("Error: A Bézier surface requires exactly 16 control points (4x4 grid).")
+                return
+            control_points = []
+            for i in range(4):
+                row = []
+                for j in range(4):
+                    idx = i * 4 + j
+                    row.append(Point3D([coords[idx]]))
+                control_points.append(row)
+            
+            new_obj = Surface3D(name, obj_type, control_points)    
+        if type_str == "Surface (B-Spline) | 3D":
+            obj_type = ObjectType.SURFACE_BSPLINE
+            if len(coords) != 16:
+                self.console.log("Error: A B-Spline surface requires exactly 16 control points (4x4 grid).")
+                return
+            control_points = []
+            for i in range(4):
+                row = []
+                for j in range(4):
+                    idx = i * 4 + j
+                    row.append(Point3D([coords[idx]]))
+                control_points.append(row)
+            
+            new_obj = Surface3D(name, obj_type, control_points)
+        if type_str == "Surface (B-Spline FD) | 3D":
+            obj_type = ObjectType.SURFACE_BSPLINE_FD
+            
+            if isinstance(coords, str):
+                rows = coords.strip().split(';')
+                control_points_matrix = []
+                    
+                for row_str in rows:
+                    if not row_str.strip():
+                        continue
+                    row_coords = eval(row_str.strip())
+                    row_points = []
+                    for coord in row_coords:
+                        row_points.append(Point3D([coord]))
+                    control_points_matrix.append(row_points)
+            else:
+                control_points_matrix = []
+                rows = len(coords)
+                cols = len(coords[0]) if rows > 0 else 0
+                
+                for i in range(rows):
+                    row_points = []
+                    for j in range(cols):
+                        row_points.append(Point3D([coords[i][j]]))
+                    control_points_matrix.append(row_points)
+                
+            rows = len(control_points_matrix)
+            cols = len(control_points_matrix[0]) if rows > 0 else 0
+                
+            if rows < 4 or cols < 4:
+                self.console.log("Error: B-Spline FD surface requires at least 4x4 control points.")
+                return
+            if rows > 20 or cols > 20:
+                self.console.log("Error: B-Spline FD surface cannot exceed 20x20 control points.")
+                return
+                
+            
+            new_obj = SurfaceBSplineFD(name, control_points_matrix)
+            self.console.log(f"Created B-Spline FD surface with {rows}x{cols} control points")
 
         if obj_type:
             if obj_type == ObjectType.DOT:

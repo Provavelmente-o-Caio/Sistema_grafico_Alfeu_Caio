@@ -135,3 +135,97 @@ def forward_differences_matrix(delta: float = 0.1):
     )
 
     return forward_differences
+
+def create_bspline_bicubic_matrix():
+    """Creates the B-spline bicubic basis matrix"""
+    return np.array([
+        [-1, 3, -3, 1],
+        [3, -6, 3, 0],
+        [-3, 0, 3, 0],
+        [1, 4, 1, 0]
+    ]) / 6
+
+def forward_differences_bicubic_setup(control_points_4x4, n_steps=20):
+    """
+    Setup forward differences for bicubic B-spline surface
+    control_points_4x4: 4x4 matrix of Point3D objects
+    n_steps: number of steps for parametrization (default 20)
+    """
+    M = create_bspline_bicubic_matrix()
+    delta_u = 1.0 / n_steps
+    delta_v = 1.0 / n_steps
+    
+    Gx = np.zeros((4, 4))
+    Gy = np.zeros((4, 4))
+    Gz = np.zeros((4, 4))
+    
+    for i in range(4):
+        for j in range(4):
+            coords = control_points_4x4[i][j].get_coordinates()
+            if isinstance(coords, list):
+                x, y, z = coords[0]
+            else:
+                x, y, z = coords
+            Gx[i][j] = x
+            Gy[i][j] = y
+            Gz[i][j] = z
+    
+    Cx = M @ Gx @ M.T
+    Cy = M @ Gy @ M.T
+    Cz = M @ Gz @ M.T
+    
+    return Cx, Cy, Cz, delta_u, delta_v
+
+def forward_differences_bicubic_evaluate(Cx, Cy, Cz, delta_u, delta_v, n_steps=20):
+    """
+    Evaluate bicubic surface using forward differences
+    Returns list of surface points
+    """
+    points = []
+    
+    for i in range(n_steps + 1):
+        u = i * delta_u
+        row_points = []
+        
+        u_powers = np.array([u**3, u**2, u, 1])
+        
+        ax = u_powers @ Cx
+        ay = u_powers @ Cy
+        az = u_powers @ Cz
+        
+        v = 0.0
+        x = ax[3]  # a0
+        y = ay[3]  # a0
+        z = az[3]  # a0
+        
+        dx = ax[2] * delta_v 
+        dy = ay[2] * delta_v
+        dz = az[2] * delta_v
+        
+        d2x = ax[1] * delta_v * delta_v  
+        d2y = ay[1] * delta_v * delta_v
+        d2z = az[1] * delta_v * delta_v
+        
+        d3x = ax[0] * delta_v * delta_v * delta_v  
+        d3y = ay[0] * delta_v * delta_v * delta_v
+        d3z = az[0] * delta_v * delta_v * delta_v
+        
+        for j in range(n_steps + 1):
+            from models.point_3d import Point3D
+            row_points.append(Point3D([(float(x), float(y), float(z))]))
+            
+            x += dx
+            y += dy
+            z += dz
+            
+            dx += d2x
+            dy += d2y
+            dz += d2z
+            
+            d2x += d3x
+            d2y += d3y
+            d2z += d3z
+        
+        points.append(row_points)
+    
+    return points

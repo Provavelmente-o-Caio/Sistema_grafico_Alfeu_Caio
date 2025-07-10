@@ -9,6 +9,8 @@ from models.window import Window
 from models.wireframe import Wireframe
 from models.wireframe_3d import Wireframe_3D
 from models.point_3d import Point3D
+from models.surface_3d import Surface3D
+from models.surface_BSpline import SurfaceBSplineFD
 from utils.descritorOBJ import DescritorOBJ
 from utils.transformations import (
     create_bezier_matrix,
@@ -33,7 +35,7 @@ class Canvas(QWidget):
         self.setMinimumSize(400, 300)
 
         # List to store all wireframe objects (display file)
-        self.objects: List[Wireframe|Wireframe_3D] = []
+        self.objects: List[Wireframe|Wireframe_3D|Surface3D] = []
 
         # Window and viewport setup
         self.window: Window = Window()
@@ -173,6 +175,39 @@ class Canvas(QWidget):
         )
         hexagon3d.set_color(QColor("red"))
         self.add_object(hexagon3d)
+        
+        bezier_control_points = []
+        for i in range(4):
+            row = []
+            for j in range(4):
+                x = (j - 1.5) * 3
+                y = (i - 1.5) * 3
+                z = np.sin(j * np.pi / 3) * np.cos(i * np.pi / 3) * 2
+                row.append(Point3D([(x, y, z)]))
+            bezier_control_points.append(row)
+        
+        bezier_surface = Surface3D("Bézier Surface Example", ObjectType.SURFACE_BEZIER, bezier_control_points)
+        bezier_surface.set_color(QColor("magenta"))
+        self.add_object(bezier_surface)
+        
+        bspline_fd_control_points = []
+        for i in range(5):
+            row = []
+            for j in range(5):
+                x = (j - 2) * 2.5
+                y = (i - 2) * 2.5
+                z = np.sin(j * np.pi / 4) * np.cos(i * np.pi / 4) * 1.5 + \
+                    0.3 * np.sin(j * np.pi / 2) * np.sin(i * np.pi / 2)
+                row.append(Point3D([(x, y, z)]))
+            bspline_fd_control_points.append(row)
+        
+        bspline_fd_surface = SurfaceBSplineFD(
+            "B-Spline FD Surface Example", 
+            bspline_fd_control_points, 
+            resolution=15
+        )
+        bspline_fd_surface.set_color(QColor("darkCyan"))
+        self.add_object(bspline_fd_surface)
 
     def remove_object(self, name: str):
         """
@@ -190,7 +225,7 @@ class Canvas(QWidget):
         self.objects.clear()
         self.update()
 
-    def translate_objects(self, object: Wireframe | Wireframe_3D, dx: float, dy: float, dz: float = 0):
+    def translate_objects(self, object: Wireframe | Wireframe_3D | Surface3D, dx: float, dy: float, dz: float = 0):
         """
         This method is responsible for 2D translation.
         It basically is adding and/or subtracting coordinates to all objects
@@ -199,6 +234,10 @@ class Canvas(QWidget):
         if isinstance(object, Wireframe):
             object.translate(dx, dy)
         elif isinstance(object, Wireframe_3D):
+            object.translate(dx, dy, dz)
+        elif isinstance(object, Surface3D):
+            object.translate(dx, dy, dz)
+        elif isinstance(object, SurfaceBSplineFD):
             object.translate(dx, dy, dz)
         self.update()
 
@@ -212,6 +251,10 @@ class Canvas(QWidget):
             object.transform(dx, dy)
         elif isinstance(object, Wireframe_3D):
             object.transform(dx, dy, dz)
+        elif isinstance(object, Surface3D):
+            object.translate(dx, dy, dz)
+        elif isinstance(object, SurfaceBSplineFD):
+            object.translate(dx, dy, dz)
         self.update()
 
     def rotate_objects(self, object: Wireframe | Wireframe_3D, angle_x: float, angle_y: float, angle_z: float):
@@ -224,6 +267,10 @@ class Canvas(QWidget):
             object.rotate(angle_z)
         elif isinstance(object, Wireframe_3D):
             object.rotate(angle_x, angle_y, angle_z)
+        elif isinstance(object, Surface3D):
+            object.translate(angle_x, angle_y, angle_z)
+        elif isinstance(object, SurfaceBSplineFD):
+            object.translate(angle_x, angle_y, angle_z)
         self.update()
 
     def rotateWithCenter(self, object: Wireframe | Wireframe_3D, angle: float):
@@ -460,6 +507,54 @@ class Canvas(QWidget):
                                 painter.drawLine(
                                     int(vx1), int(vy1), int(vx2), int(vy2)
                                 )
+                elif obj.obj_type in [ObjectType.SURFACE_BEZIER, ObjectType.SURFACE_BSPLINE]:
+                    edges = obj.get_wireframe_edges()
+                    for p1, p2 in edges:
+                        coords1 = p1.get_coordinates()
+                        coords2 = p2.get_coordinates()
+                        
+                        if isinstance(coords1, list):
+                            x1, y1, z1 = coords1[0]
+                        else:
+                            x1, y1, z1 = coords1
+                            
+                        if isinstance(coords2, list):
+                            x2, y2, z2 = coords2[0]
+                        else:
+                            x2, y2, z2 = coords2
+                        
+                        vx1, vy1 = self.transform_coords(x1, y1, z1)
+                        vx2, vy2 = self.transform_coords(x2, y2, z2)
+                        
+                        if (vx1 and vy1) and (vx2 and vy2):
+                            clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
+                            if clipped_line:
+                                vx1, vy1, vx2, vy2 = clipped_line
+                                painter.drawLine(int(vx1), int(vy1), int(vx2), int(vy2))
+                elif obj.obj_type == ObjectType.SURFACE_BSPLINE_FD:
+                    edges = obj.get_wireframe_edges()
+                    for p1, p2 in edges:
+                        coords1 = p1.get_coordinates()
+                        coords2 = p2.get_coordinates()
+                        
+                        if isinstance(coords1, list):
+                            x1, y1, z1 = coords1[0]
+                        else:
+                            x1, y1, z1 = coords1
+                            
+                        if isinstance(coords2, list):
+                            x2, y2, z2 = coords2[0]
+                        else:
+                            x2, y2, z2 = coords2
+                        
+                        vx1, vy1 = self.transform_coords(x1, y1, z1)
+                        vx2, vy2 = self.transform_coords(x2, y2, z2)
+                        
+                        if (vx1 and vy1) and (vx2 and vy2):
+                            clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
+                            if clipped_line:
+                                vx1, vy1, vx2, vy2 = clipped_line
+                                painter.drawLine(int(vx1), int(vy1), int(vx2), int(vy2))
 
             except OverflowError:
                 self.console.log(f"{obj.name} was not added due to an overflow error.")

@@ -4,6 +4,8 @@ from PyQt6.QtGui import QColor
 from models.wireframe import Wireframe
 from models.wireframe_3d import Wireframe_3D
 from models.point_3d import Point3D
+from models.surface_3d import Surface3D
+from models.surface_BSpline import SurfaceBSplineFD
 from utils.types import ObjectType
 
 
@@ -50,6 +52,32 @@ class DescritorOBJ():
                 f.write(f"usemtl {color_name}\n")
                 for edge in edges:
                     f.write(f"l {edge[0]} {edge[1]}\n")
+            elif isinstance(obj, Surface3D):
+                points = obj.get_control_points_flat()
+                for point in points:
+                    coords = point.get_coordinates()
+                    if isinstance(coords, list):
+                        x, y, z = coords[0]
+                    else:
+                        x, y, z = coords
+                    f.write(f"v {x:.6f} {y:.6f} {z:.6f}\n")
+                f.write(f"usemtl {color_name}\n")
+                if obj.get_obj_type() == ObjectType.SURFACE_BEZIER:
+                    f.write("# Bézier surface - 4x4 control points\n")
+                elif obj.get_obj_type() == ObjectType.SURFACE_BSPLINE:
+                    f.write("# B-Spline surface - 4x4 control points\n")
+            elif isinstance(obj, SurfaceBSplineFD):
+                points = obj.get_control_points_flat()
+                for point in points:
+                    coords = point.get_coordinates()
+                    if isinstance(coords, list):
+                        x, y, z = coords[0]
+                    else:
+                        x, y, z = coords
+                    f.write(f"v {x:.6f} {y:.6f} {z:.6f}\n")
+                f.write(f"usemtl {color_name}\n")
+                rows, cols = obj.get_dimensions()
+                f.write(f"# B-Spline FD surface - {rows}x{cols} control points\n")
 
             f.write("\n\n")
 
