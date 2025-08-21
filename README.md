@@ -1,6 +1,6 @@
 # Sistema Gráfico Alfeu Caio
 
-Um sistema básico de computação gráfica 3D implementado em Python utilizando PyQt6.
+Um sistema básico de computação gráfica 3D implementado em Python utilizando PyQt6 para a matéria de Computação Gráfica do curso de Ciência da Computação na Universidade Federal de Santa Catarina.
 
 ## Descrição
 
