@@ -1,6 +1,13 @@
 import numpy as np
 
-from utils.transformations import create_coord_transform_matrix_3d, create_translation_matrix_3d, create_rotation_matrix_3dx, create_rotation_matrix_3dy, create_perspective_matrix
+from utils.transformations import (
+    create_coord_transform_matrix_3d,
+    create_translation_matrix_3d,
+    create_rotation_matrix_3dx,
+    create_rotation_matrix_3dy,
+    create_perspective_matrix,
+)
+
 
 class Window:
     def __init__(
@@ -48,14 +55,20 @@ class Window:
         Returns the center point of the window
         """
 
-        return (self.__xmin + self.__xmax) / 2, (self.__ymin + self.__ymax) / 2, (self.__zmin + self.__zmax) / 2
+        return (
+            (self.__xmin + self.__xmax) / 2,
+            (self.__ymin + self.__ymax) / 2,
+            (self.__zmin + self.__zmax) / 2,
+        )
 
     def get_transformation_matrix(self):
         """
         Returns the transformation matrix for the window
         """
 
-        return create_coord_transform_matrix_3d(0, 0, 0, 0, 0, self.__z_rotation_angle, 1.0, 1.0, 1.0)
+        return create_coord_transform_matrix_3d(
+            0, 0, 0, 0, 0, self.__z_rotation_angle, 1.0, 1.0, 1.0
+        )
 
     def pan(self, dx, dy, dz) -> None:
         """
@@ -124,7 +137,9 @@ class Window:
 
         self.__z_rotation_angle = (self.__z_rotation_angle + angle) % 360
 
-    def world_to_normalized(self, xw: float, yw: float, zw: float) -> tuple[float, float, float]:
+    def world_to_normalized(
+        self, xw: float, yw: float, zw: float
+    ) -> tuple[float, float, float]:
         """
         Converts from World Coordinates to Normalized Device Coordinates
         """
@@ -135,7 +150,9 @@ class Window:
 
         return xn, yn, zn
 
-    def normalized_to_world(self, xn: float, yn: float, zn: float) -> tuple[float, float, float]:
+    def normalized_to_world(
+        self, xn: float, yn: float, zn: float
+    ) -> tuple[float, float, float]:
         """
         Converts from Normalized Device Coordinates to World Coordinates
         """
