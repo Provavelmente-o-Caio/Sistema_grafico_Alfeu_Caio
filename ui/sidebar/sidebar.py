@@ -88,7 +88,15 @@ class SideBar(QWidget):
         # Object type selection
         self.obj_type_combo = QComboBox()
         self.obj_type_combo.addItems(
-           ["Dot | 2D", "Line | 2D", "Polygon | 2D", "Curve (Bezier) | 2D", "Curve (B-Spline) | 2D", "Polygon | 3D"]
+            [
+                "Dot | 2D",
+                "Line | 2D",
+                "Polygon | 2D",
+                "Curve (Bezier) | 2D",
+                "Curve (B-Spline) | 2D",
+                "Polygon | 3D",
+                "Surface (Bezier) | 3D",
+            ]
         )
         creation_layout.addWidget(QLabel("Object Type:"))
         creation_layout.addWidget(self.obj_type_combo)
@@ -238,8 +246,17 @@ class SideBar(QWidget):
         self.projection_group.setLayout(self.projection_layout)
         layout.addWidget(self.projection_group)
 
-
         # Connect signals to slots
+        ## This first part allows repetition
+        self.up_btn.setAutoRepeat(True)
+        self.down_btn.setAutoRepeat(True)
+        self.left_btn.setAutoRepeat(True)
+        self.right_btn.setAutoRepeat(True)
+        self.foward_btn.setAutoRepeat(True)
+        self.back_btn.setAutoRepeat(True)
+        self.zoom_in_btn.setAutoRepeat(True)
+        self.zoom_out_btn.setAutoRepeat(True)
+        ## setting movement
         self.up_btn.clicked.connect(lambda: self.canvas.move(0, 1, 0))
         self.down_btn.clicked.connect(lambda: self.canvas.move(0, -1, 0))
         self.left_btn.clicked.connect(lambda: self.canvas.move(-1, 0, 0))
@@ -269,20 +286,41 @@ class SideBar(QWidget):
         coords = []
         edges = []
         if not name:
-            self.console.log("Error: Object name is required.")
+            self.console.log("Error: Object name is required.").strip()
             return
 
+        # uso de IA:
+        # Pode adaptar essa passagem de código para aceitar as entradas anteriores mas também interpretar essa nova? (0,0,0),(1,0,1),(2,0,1),(3,0,0);(0,1,1),(1,1,2),(2,1,2),(3,1,1);(0,2,1),(1,2,2),(2,2,2),(3,2,1);(0,3,0),(1,3,1),(2,3,1),(3,3,0)
         try:
-            coords_str = self.coords_input.text()
-            coords = eval(coords_str)
+            coords_str = self.coords_input.text().strip()
+            if ";" in coords_str:
+                coords = []
+                rows = coords_str.split(";")
+                for row in rows:
+                    line = []
+                    row = row.strip()
+                    if not row:
+                        continue
+                    points = row.split("),")
+                    for i in range(len(points)):
+                        pt = points[i].strip()
+                        if not pt.endswith(")"):
+                            pt += ")"
+                        pt = pt.replace("(", "").replace(")", "")
+                        x, y, z = map(float, pt.split(","))
+                        line.append((x, y, z))
+                    coords.append(line)
+            else:
+                coords = eval(coords_str)
         except Exception as e:
             self.console.log(f"Error parsing coordinates: {e}")
             return
-        try:
-            edges_str = self.edges_input.text()
-            edges = eval(edges_str)
-        except Exception as e:
-            self.console.log(f"Error parsing edges: {e}")
+        if self.edges_input.text() != "":
+            try:
+                edges_str = self.edges_input.text()
+                edges = eval(edges_str)
+            except Exception as e:
+                self.console.log(f"Error parsing edges: {e}")
 
         type_str = self.obj_type_combo.currentText()
         obj_type = None
@@ -336,14 +374,25 @@ class SideBar(QWidget):
             obj_type = ObjectType.POLYGON_3D
             if len(coords) < 2:
                 self.console.log(
-                    "Error: A 3D polygon requires at least 2 coordinate pairs."
+                    "Error: A 3D polygon requires at least 2 coordinate groups."
                 )
                 return
             if len(edges) < 1:
-                self.console.log(
-                    "Error: A 3D polygon requires at least 1 edge."
-                )
+                self.console.log("Error: A 3D polygon requires at least 1 edge.")
                 return
+            if type_str == "Surface (Bezier) | 3D":
+                obj_type = ObjectType.SURFACE_BEZIER
+                if len(coords) != 4:
+                    self.console.log(
+                        "Error: A surface requires exactly 4 lines of coordinate groups."
+                    )
+                    return
+                for row in coords:
+                    if len(row) != 4:
+                        self.console.log(
+                            "Error: A surface requires exactly 4 coordinate groups per line."
+                        )
+                        return
 
         if obj_type:
             if obj_type == ObjectType.DOT:
@@ -485,7 +534,5 @@ class SideBar(QWidget):
     def set_projection_mode(self, checked):
         projection = self.sender()
         if checked:
-            self.console.log(
-                f"Setting projection algorithm to {projection.text()}"
-            )
+            self.console.log(f"Setting projection algorithm to {projection.text()}")
             self.canvas.set_projection_mode(projection.text())

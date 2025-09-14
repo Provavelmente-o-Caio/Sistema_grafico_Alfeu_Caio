@@ -1,4 +1,3 @@
-from turtle import Pen
 import numpy as np
 from PyQt6.QtCore import QPointF, Qt
 from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
@@ -33,7 +32,7 @@ class Canvas(QWidget):
         self.setMinimumSize(400, 300)
 
         # List to store all wireframe objects (display file)
-        self.objects: List[Wireframe|Wireframe_3D] = []
+        self.objects: List[Wireframe | Wireframe_3D] = []
 
         # Window and viewport setup
         self.window: Window = Window()
@@ -100,8 +99,30 @@ class Canvas(QWidget):
         cube = Wireframe_3D(
             "Square Example",
             ObjectType.POLYGON_3D,
-            [Point3D((-5, -5, 0)), Point3D((5, -5, 0)), Point3D((5, 5, 0)), Point3D((-5, 5, 0)), Point3D((-5, -5, 5)), Point3D((5, -5, 5)), Point3D((5, 5, 5)), Point3D((-5, 5, 5))],
-            [(0, 1), (0, 3), (0, 4), (1, 2), (1, 5), (2, 3), (2, 6), (3, 7), (4, 5), (4, 7), (5, 6), (6, 7)]
+            [
+                Point3D((-5, -5, 0)),
+                Point3D((5, -5, 0)),
+                Point3D((5, 5, 0)),
+                Point3D((-5, 5, 0)),
+                Point3D((-5, -5, 5)),
+                Point3D((5, -5, 5)),
+                Point3D((5, 5, 5)),
+                Point3D((-5, 5, 5)),
+            ],
+            [
+                (0, 1),
+                (0, 3),
+                (0, 4),
+                (1, 2),
+                (1, 5),
+                (2, 3),
+                (2, 6),
+                (3, 7),
+                (4, 5),
+                (4, 7),
+                (5, 6),
+                (6, 7),
+            ],
         )
         cube.set_color(QColor("cyan"))
         self.add_object(cube)
@@ -149,7 +170,7 @@ class Canvas(QWidget):
         # uso de IA:
         # pode desenhar um wireframe_3d no load_example_objects no formato de um hexágono?
         points = []
-        for z in [-height/2, height/2]:
+        for z in [-height / 2, height / 2]:
             for i in range(6):
                 angle = 2 * math.pi * i / 6
                 x = center[0] + radius * math.cos(angle)
@@ -166,10 +187,7 @@ class Canvas(QWidget):
             edges.append((i, i + 6))
 
         hexagon3d = Wireframe_3D(
-            "Hexagonal Prism",
-            ObjectType.POLYGON_3D,
-            points,
-            edges
+            "Hexagonal Prism", ObjectType.POLYGON_3D, points, edges
         )
         hexagon3d.set_color(QColor("red"))
         self.add_object(hexagon3d)
@@ -190,7 +208,9 @@ class Canvas(QWidget):
         self.objects.clear()
         self.update()
 
-    def translate_objects(self, object: Wireframe | Wireframe_3D, dx: float, dy: float, dz: float = 0):
+    def translate_objects(
+        self, object: Wireframe | Wireframe_3D, dx: float, dy: float, dz: float = 0
+    ):
         """
         This method is responsible for 2D translation.
         It basically is adding and/or subtracting coordinates to all objects
@@ -202,7 +222,9 @@ class Canvas(QWidget):
             object.translate(dx, dy, dz)
         self.update()
 
-    def transform_objects(self, object: Wireframe | Wireframe_3D, dx: float, dy: float, dz: float = 0):
+    def transform_objects(
+        self, object: Wireframe | Wireframe_3D, dx: float, dy: float, dz: float = 0
+    ):
         """
         This method is responsible for 2D transformation.
         It basically is mutltiplication coordinates to an objects
@@ -214,7 +236,13 @@ class Canvas(QWidget):
             object.transform(dx, dy, dz)
         self.update()
 
-    def rotate_objects(self, object: Wireframe | Wireframe_3D, angle_x: float, angle_y: float, angle_z: float):
+    def rotate_objects(
+        self,
+        object: Wireframe | Wireframe_3D,
+        angle_x: float,
+        angle_y: float,
+        angle_z: float,
+    ):
         """
         This method is responsible for 3D rotation
         It basically is multiplying the objects for sin and cos
@@ -249,7 +277,14 @@ class Canvas(QWidget):
 
         self.update()
 
-    def rotateInPoint(self, object: Wireframe | Wireframe_3D, angle: float, px: float, py: float, pz: float = 0):
+    def rotateInPoint(
+        self,
+        object: Wireframe | Wireframe_3D,
+        angle: float,
+        px: float,
+        py: float,
+        pz: float = 0,
+    ):
         """
         This method rotates an object around a specific point
         """
@@ -264,7 +299,7 @@ class Canvas(QWidget):
             object.translate(px, py, pz)
         self.update()
 
-    def transform_coords(self, xw = 0, yw = 0, zw = 1):
+    def transform_coords(self, xw=0, yw=0, zw=1):
         """
         Window to Viewport transformation
         """
@@ -288,7 +323,11 @@ class Canvas(QWidget):
         M = self.window.get_transformation_matrix()
         point = np.matrix([xn, yn, zn, 1])
         transformed = point * M
-        xt, yt, _ = float(transformed[0, 0]), float(transformed[0, 1]), float(transformed[0, 2])
+        xt, yt, _ = (
+            float(transformed[0, 0]),
+            float(transformed[0, 1]),
+            float(transformed[0, 2]),
+        )
 
         xvp = self.viewport_xmin + (self.viewport_xmax - self.viewport_xmin) * (
             (xt + 1) / 2
@@ -382,7 +421,6 @@ class Canvas(QWidget):
                         self.polygon_clipping(painter, obj)
                 elif obj.obj_type == ObjectType.CURVE:
                     if len(obj.coordinates) >= 4:
-
                         self.check_bezier_continuity(obj.coordinates)
 
                         for i in range(0, len(obj.coordinates) - 3, 4):
@@ -431,7 +469,9 @@ class Canvas(QWidget):
                                     segment[j + 1][0], segment[j + 1][1]
                                 )
                                 if (vx1 and vy1) and (vx2 and vy2):
-                                    clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
+                                    clipped_line = self.line_clipping(
+                                        vx1, vy1, vx2, vy2
+                                    )
                                     if clipped_line:
                                         vx1, vy1, vx2, vy2 = clipped_line
                                         painter.drawLine(
@@ -457,9 +497,7 @@ class Canvas(QWidget):
                             clipped_line = self.line_clipping(vx1, vy1, vx2, vy2)
                             if clipped_line:
                                 vx1, vy1, vx2, vy2 = clipped_line
-                                painter.drawLine(
-                                    int(vx1), int(vy1), int(vx2), int(vy2)
-                                )
+                                painter.drawLine(int(vx1), int(vy1), int(vx2), int(vy2))
 
             except OverflowError:
                 self.console.log(f"{obj.name} was not added due to an overflow error.")
@@ -627,7 +665,7 @@ class Canvas(QWidget):
         Sutherland-Hodgman polygon clipping algorithm.
         """
         points = [self.transform_coords(x, y) for x, y in obj.coordinates]
-        if all(point is not (None, None) for point in points):
+        if all(point != (None, None) for point in points):
             edges = ["LEFT", "RIGHT", "BOTTOM", "TOP"]
 
             clipped_points = points
